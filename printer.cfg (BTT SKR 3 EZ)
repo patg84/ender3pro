@@ -1,0 +1,502 @@
+# Last Updated: 09.06.24
+
+# To Do:
+
+# Build ADXL345 section for this orange pi host
+# cd ~/klipper
+# make clean
+# make menuconfig
+#   Micro-controller Architecture = linux process
+# Press "q" then "y" to save and exit
+# make
+# re-enable the [mcu rpi] section in printer.cfg
+#
+# sudo orangepi-config
+#   System --> Bootenv
+#
+#     verbosity=1
+#     bootlogo=false
+#     console=both
+#     disp_mode=1920x1080p60
+#     overlay_prefix=sun50i-h616
+#     rootdev=UUID=635d9db0-d9c8-453e-baca-8b0e028d5dcf
+#     rootfstype=ext4
+#     param_spidev_spi_bus=1
+#     usbstoragequirks=0x2537:0x1066:u,0x2537:0x1068:u
+#
+#  Save and exit
+#
+# restart firmware from Klipper GUI
+
+
+
+#######################################################################################################################
+# This section taken from (https://github.com/Klipper3d/klipper/blob/master/config/generic-bigtreetech-skr-3.cfg)
+#
+# This file contains common pin mappings for the BigTreeTech SKR 3.
+# This board can ship with one of two chips, STM32H743 or STM32H723.
+# To use this config, during "make menuconfig" enable "low-level
+# options", "STM32H743" or "STM32H723", "128KiB bootloader",
+# and "25MHz clock". Need to be in "~/klipper" before running "make menuconfig".
+#
+# See docs/Config_Reference.md for a description of parameters.
+#
+#######################################################################################################################
+#
+# Most of what's below was taken from my Klipper config when I had the Creality v4.2.7 board in the unit.
+# 
+# Pat Giacobbe
+# 08.31.24
+#
+#######################################################################################################################
+#
+# *** Things to change/check: ***
+#
+# MCU paths (one for the orange pi and one for the ADXL345)     [mcu] section
+# Leadscrew Rotation Distance                                   [stepper_z] and [stepper_z1]
+# PID Tune                                                      [extruder] and [heater_bed] sections
+# Probe Pin                                                     [probe] section
+# Fine Tune E Steps                                             [extruder] section
+
+[include mainsail.cfg]
+
+# As per YouTube user "Joe Prints" use by-path vs by-id
+# Added by PG
+#
+# MCU = Microcontroller Unit. In this case it's the BTT SKR 3 EZ. It's connected via USB to the Orange Pi. The /dev location is on the Orange Pi.
+#
+[mcu]
+serial: /dev/serial/by-path/platform-5200400.usb-usb-0:1:1.0             # Compile firmware.bin then run "ls /dev/serial/by-path/*"
+restart_method: command
+
+
+
+# Added by PG - Shows temp of Orange Pi in Mainsail interface.
+#
+[temperature_sensor orange_pi]
+sensor_type: temperature_host
+
+
+
+# Added automatically iirc. It's where the uploaded GCodes are saved after uploading from the Mainsail interface.
+#
+[virtual_sdcard]
+path: /home/orangepi/printer_data/gcodes
+on_error_gcode: CANCEL_PRINT
+
+
+
+# Added by PG - https://www.youtube.com/watch?v=5vmjBXvY6BA
+# Enables BL-Touch/CR-Touch (we have this one)
+#
+[bltouch]
+sensor_pin: ^PC13                      # PG - ZStop Signal (OUT). Added "^" since most BLTouch devices require a pull up on the sensor pin and it wouldn't work otherwise.
+control_pin: PE5                       # PG - Servo Signal (CTRL).
+x_offset: -45.00                       # PG - New Value (post-it note method) - Old values from Pat's Custom Marlin FW = -45.50 (dial caliper)
+y_offset: -7.00                        # PG - New Value (post-it note method) - Old values from Pat's Custom Marlin FW = -5.00
+samples: 2                             # PG - Probes twice and takes average.
+speed: 2
+#z_offset: 0.0                         # PG - This is commented out after it's set automatically. See EOF (End of File).
+
+
+
+# Added by PG - https://www.youtube.com/watch?v=5vmjBXvY6BA
+# After the X and Y endstops are triggered this is where the BLTouch will autohome to.
+#
+[safe_z_home]
+home_xy_position: 125,125              # Change coordinates to center of bed
+speed: 50                              # How fast are we moving to the home position?
+z_hop: 10                              # Move up 10mm
+z_hop_speed: 5                         # How fast are we moving the Z axis up?
+
+
+
+# Added by PG as per Leo
+# Screws Tilt Adjust - Performs automatic calculations on how to manually adjust the bed based off the front left adjustment screw.
+#
+# https://www.youtube.com/watch?v=APAbl5PGEh0&t=345s
+# https://www.klipper3d.org/Manual_Level.html
+#
+#   4 <------ 3
+#   |    R    ↑
+#   | L     R |
+#   ↓    F    |
+#   1 ------> 2
+#
+[screws_tilt_adjust]
+screw1: 76.50, 38                      # X and Y location of nozzle directly over left front screw
+screw1_name: front left screw
+screw2: 247.50, 38                     # X and Y location of nozzle directly over front right screw
+screw2_name: front right screw
+screw3: 247.50, 208                    # X and Y location of nozzle directly over rear right screw
+screw3_name: rear right screw
+screw4: 76.50, 208                     # X and Y location of nozzle directly over rear left screw
+screw4_name: rear left screw
+horizontal_move_z: 10                  # Life X axis 10mm between moves.
+speed: 50                              # Travel speed between point in millimeters per minute.
+screw_thread: CW-M4                    # Adjustment screw under bed turns clockwise to decrease gap between nozzle and bed amd is an M4 screw.
+
+
+
+# ADXL345 Input Shaper Section:
+#
+# Added by PG
+#  Make sure (sudo orangepi-config) has "param_spidev_spi_bus=1" in the "u-boot env" section and that SPI is not enabled in the Hardware section. This is the SPI1 bus as seen on orangepi gpio diagrams.
+#  (make flash) needs to be run to build & configure the SPI driver on the Orange Pi (https://www.klipper3d.org/Installation.html).
+#
+# *** Run automatic or manual calibration but not both ***
+#
+# Automatic calibration of each axis (https://www.klipper3d.org/Measuring_Resonances.html#input-shaper-auto-calibration):
+#
+#    1. Run "ACCELEROMETER_QUERY" to get current ADXL345 data and verify ADXL345 chip is connected and working correctly.
+#    2. Run "SHAPER_CALIBRATE AXIS=X" to run test
+#    3. Run "SAVE_CONFIG" to save data to printer.cfg
+#    4. Run "SHAPER_CALIBRATE AXIS=Y" to run test
+#    5. Run "SAVE_CONFIG" to save data to printer.cfg
+#
+# Manual calibration of each axis (https://www.klipper3d.org/Measuring_Resonances.html#testing-custom-axes):
+#
+#    1. Run "ACCELEROMETER_QUERY" to get current ADXL345 data and verify ADXL345 chip is connected and working correctly.
+#    2. Run "TEST_RESONANCES AXIS=X' and "TEST_RESONANCES AXIS=Y" to run test and add CSV data to "/tmp" on the Pi. Once data is aquired for both axes run the following command to get recommended settings and PNGs of graphs:
+#    3. ~/klipper/scripts/calibrate_shaper.py /tmp/resonances_x_*.csv -o /tmp/shaper_calibrate_x.png
+#    4. ~/klipper/scripts/calibrate_shaper.py /tmp/resonances_y_*.csv -o /tmp/shaper_calibrate_y.png
+#    5. Recommended input shaper data will be displayed. Add this to the INPUT_SHAPER section of printer.cfg
+
+#[mcu rpi]
+#serial: /tmp/klipper_host_mcu          # This is the driver file. (NEED TO GENERATE THIS FILE FOR THE NEW BOARD!!!)
+
+#[adxl345]
+#cs_pin: rpi:None
+#spi_bus: spidev1.1                     # To get this value run, (ls /dev/spi*) to see available SPI devices.
+
+#[resonance_tester]
+#accel_chip: adxl345                    # Specifies the type of accelerometer chip being used.
+#probe_points:                          # As per Aubey in Discord, this is where the tool head should park when running the test.
+#    100, 100, 20  # Set by PG          # This should be the middle of the bed. Default values.
+
+
+
+# Bed Mesh Probe Points Section:
+#
+# Added by PG - https://youtu.be/5vmjBXvY6BA?si=Le7Bqf7OGQHqSTqf&t=678
+#
+[bed_mesh]
+speed: 200                             # Speed at which to move between probing points
+horizontal_move_z: 5                   # How high does probe move after last probe before moving to next point?
+mesh_min: 12, 23                       # Bounding box. Set probe pin 10mm in from LL and LF edge. Note nozzle loc in Mainsail. Take nozzle loc (x,y) and add Z offset X & Y values. (e.g., nozzle (57,30) + Z offset (-45,-7)). mesh_min: 12, 23
+mesh_max: 206, 223                     # Bounding box. To solve, find position_max of steppers X & Y and add Z offset values. (e.g., position_max for X=251 + -45=206) (position_max for Y=230 + -7=223). mesh_max: 206, 223
+probe_count: 3,3                       # 5x5=25 probe points (x,y)
+mesh_pps: 5,5                          # Mesh probe points inbetween actual probes which Klipper will automatically calculate.
+fade_start: 1                          # Value in mm when to start decreasing effect of probe mesh
+fade_end: 10                           # Height in mm when probe mesh terminates completely
+#fade_target: 0
+
+
+
+# Pat's Ender 3 Custom Start G-code (MicroSwiss Direct Drive)
+# chat.openai.com - Start Code 
+#
+[gcode_macro START_PRINT]
+variable_bed_temp: 60                  # Sets default value to 60°C. Can be changed with gcode.
+variable_extruder_temp: 220            # Sets default value to 220°C. Can be changed with gcode.
+
+gcode:
+  G28                                  # Homes the printer
+  
+  ; Heat bed to temperature specified in the G-code file
+  M140 S{bed_temp}
+  M190 S{bed_temp}                     # Wait for bed to reach temperature specified in G-code file
+
+  ; Call SCREWS_TILT_CALCULATION with a maximum deviation of 0.06. If outside this value the print will fail.
+  SCREWS_TILT_CALCULATE MAX_DEVIATION=0.06
+
+  BED_MESH_CLEAR                       # Clears existing bed mesh.
+  BED_MESH_CALIBRATE                   # Runs a new 5x5 (3,3) interpolated bed mesh. Controlled by [bed_mesh] section.
+# BED_MESH_OUTPUT                      # Outputs bed mesh data to console (was never enabled).
+  BED_MESH_PROFILE SAVE=current        # Saves new mesh named "current".
+  BED_MESH_PROFILE LOAD=current        # Immediately loads new mesh named "current".
+
+  ; Heat up the nozzle to the print temperature specified in the G-code file
+  M104 S{extruder_temp} T0             # Begin heating up extruder, do not wait for new command
+  M109 S{extruder_temp}                # Wait for nozzle to reach the printing temperature specified in G-code file before continuing.
+
+  G90                                  # Use absolute coordinates
+  
+  G1 Z5 F3000                          # Move the nozzle near the bed
+  G1 Z0.15 F300                        # Move the nozzle height very close to the bed
+  G92 E0                               # Reset extruder position to 0,0 without moving axis
+  G1 Z2.0 F3000                        # Move Z Axis up 2mm at 3000mm/min
+  G1 X2.1 Y20 Z0.28 F5000.0            # Move to start position (move the print head to the coordinates (2.1, 20, 0.28) at a speed of 5000mm/min)
+  G1 X2.1 Y200.0 Z0.28 F1500.0 E15     # Draw the first line
+  G1 X2.4 Y200.0 Z0.28 F5000.0         # Move to side a little
+  G1 X2.4 Y20 Z0.28 F1500.0 E30        # Draw the second line
+  G92 E0                               # Reset Extruder
+  G1 Z2.0 F3000                        # Move Z Axis up 2mm at 3000mm/min
+
+
+
+
+# Pat's Ender 3 Custom End G-code (MicroSwiss Direct Drive)
+#
+[gcode_macro END_PRINT]
+gcode:
+    G91                                # Relative positioning
+
+    G1 E-10 F2700                      # Retract a bit (PG - Changed retract amount from 2mm to 10mm on 03.20.24)
+    G1 E-2 Z0.2 F2400                  # Retract and raise Z
+    G1 X5 Y5 F3000                     # Wipe out
+    G1 Z10                             # Raise Z more
+
+    G90                                # Absolute positioning
+
+    G1 X0 Y230                         # Present print (PG - Changed "Y{machine_depth}" to "Y230" as this is the "position_max" for the Y axis as defined below on 06.01.24)
+
+    M106 S0                            # Turn-off fan
+    M104 S0                            # Turn-off hotend
+    M140 S0                            # Turn-off bed
+
+    M84 X Y E                          # Disable all steppers but Z
+
+
+
+#######################################################################################################################
+# This section taken from (https://github.com/Klipper3d/klipper/blob/master/config/generic-bigtreetech-skr-3.cfg)
+#
+# This file contains common pin mappings for the BigTreeTech SKR 3.
+# This board can ship with one of two chips, STM32H743 or STM32H723.
+# To use this config, during "make menuconfig" enable "low-level
+# options", "STM32H743" or "STM32H723", "128KiB bootloader",
+# and "25MHz clock". Need to be in "~/klipper" before running "make menuconfig".
+#
+# See docs/Config_Reference.md for a description of parameters.
+#
+#######################################################################################################################
+#
+[stepper_x]
+step_pin: PD4                          # PG - UPDATED FOR SKR 3 EZ
+dir_pin: PD3                           # PG - UPDATED FOR SKR 3 EZ
+enable_pin: !PD6                       # PG - UPDATED FOR SKR 3 EZ
+microsteps: 16
+rotation_distance: 40
+endstop_pin: ^PC1                      # PG - UPDATED FOR SKR 3 EZ
+position_endstop: -4.00                # 3. PG - Inverse of value gathered during testing (testing x=4.00)
+position_max: 251.00                   # 1. PG - Was 235. Final value is 251.00
+position_min: -4.00                    # 2. PG - Adding as per Leo to find max probe area. If position_endstop is negative number, match here, else remove this line.
+homing_speed: 50
+
+
+
+[stepper_y]
+step_pin: PA15                         # PG - UPDATED FOR SKR 3 EZ
+dir_pin: !PA8                          # PG - UPDATED FOR SKR 3 EZ & INVERTED
+enable_pin: !PD1                       # PG - UPDATED FOR SKR 3 EZ
+microsteps: 16
+rotation_distance: 40
+endstop_pin: ^PC3                      # PG - UPDATED FOR SKR 3 EZ
+position_endstop: -15                  # 3. PG - Inverse of value gathered during testing (testing y=15.00)
+position_max: 230                      # 1. PG - Was 235. Final value is 230.00
+position_min: -15                      # 2. PG - Adding as per Leo to find max probe area. If position_endstop is negative number, match here, else remove this line.
+homing_speed: 50
+
+
+
+[stepper_z]
+step_pin: PE2                          # PG - UPDATED FOR SKR 3 EZ
+dir_pin: PE3                           # PG - UPDATED FOR SKR 3 EZ & UNINVERTED
+enable_pin: !PE0                       # PG - UPDATED FOR SKR 3 EZ
+microsteps: 16
+rotation_distance: 40                  # PG - UPDATED FOR SKR 3 EZ, CHANGED FROM 8 TO 40 AS PER TEMPLATE????
+#endstop_pin: ^PC0                     # PG - UPDATED FOR SKR 3 EZ - PG - Disabling default endstop pin in lieu of BLTouch
+endstop_pin: probe:z_virtual_endstop   # Added by PG to enable BLTouch
+#position_endstop: 0.0                 # PG - Disabling for BLTouch
+position_max: 250
+position_min: -6.00                    # Added by PG - https://www.youtube.com/watch?v=5vmjBXvY6BA (9:00)
+
+
+# PG - The following lines are not needed since we already referenced it once in [stepper_z]:
+#
+# position_max: 250
+# position_min: -6.00
+
+[stepper_z1]                           # PG - UPDATED FOR SKR 3 EZ - SECOND Z MOTOR INDEPENDENTLY CONTROLLED WITH EXTRUDER0 PINS ON CONTROLLER.
+step_pin: PD15                         # PG - UPDATED FOR SKR 3 EZ
+dir_pin: PD14                          # PG - UPDATED FOR SKR 3 EZ & UNINVERTED
+enable_pin: !PC7                       # PG - UPDATED FOR SKR 3 EZ (UNSURE OF INVERTED STATUS, COPYING FROM FIRST Z MOTOR)
+microsteps: 16
+rotation_distance: 40                  # PG - UPDATED FOR SKR 3 EZ - CHANGED FROM 8 TO 40 TO MATCH "stepper_z"
+#endstop_pin:                          # PG - UPDATED FOR SKR 3 EZ (erased previous value since no new pin exists) - PG - Disabling default endstop pin in lieu of BLTouch
+endstop_pin: probe:z_virtual_endstop   # Added by PG to enable BLTouch
+#position_endstop: 0.0                 # PG - Disabling for BLTouch
+
+
+
+# https://3dprinting.stackexchange.com/questions/20797/why-are-the-options-for-pid-control-commented-out-in-klipper-config-file
+# Klipper automatically disabled the below PID values and automatically put the correct calibrated ones at the end of this file in a special section.
+[extruder]                            # PG - UPDATED FOR SKR 3 EZ - Make sure this is called "extruder" and not "extruder1" since we only have a single extruder
+pressure_advance: 0.0370               # 06.16.24 - PG - Set using Ellis's PA Tool (https://ellis3dp.com/Print-Tuning-Guide/articles/pressure_linear_advance/pattern_method.html)
+max_extrude_only_distance: 101.0
+step_pin: PD11                         # PG - UPDATED FOR SKR 3 EZ
+dir_pin: PD10                          # PG - UPDATED FOR SKR 3 EZ
+enable_pin: !PD13                      # PG - UPDATED FOR SKR 3 EZ
+microsteps: 16
+#rotation_distance: 33.500             # OLD-DATA - PG - Original value
+#rotation_distance: 23.316             # OLD DATA - PG - 3x - Final value = 20mm left over. 50 extruded, OK. Calibrated e-steps by https://www.youtube.com/watch?v=5Suy_MGGFL4
+rotation_distance: 23.0479             # 06.05.24 - PG - https://ellis3dp.com/Print-Tuning-Guide/articles/extruder_calibration.html
+nozzle_diameter: 0.400
+filament_diameter: 1.750
+heater_pin: PB4                        # PG - UPDATED FOR SKR 3 EZ - USING HE1 (heating element 1) PIN ON BOARD FOR E1 (extruder e1)
+sensor_type: EPCOS 100K B57560G104F
+sensor_pin: PA3                        # PG - UPDATED FOR SKR 3 EZ - USING TH1 (thermistor 1) PIN ON BOARD FOR E1 (extruder e1)
+#control: pid
+#pid_Kp: 21.527
+#pid_Ki: 1.063
+#pid_Kd: 108.982
+min_temp: 0
+max_temp: 250
+
+
+
+# https://3dprinting.stackexchange.com/questions/20797/why-are-the-options-for-pid-control-commented-out-in-klipper-config-file
+# Klipper automatically disabled the below PID values and automatically put the correct calibrated ones at the end of this file in a special section.
+[heater_bed]
+heater_pin: PD7                        # PG - UPDATED FOR SKR 3 EZ
+sensor_type: EPCOS 100K B57560G104F
+sensor_pin: PA1                        # PG - UPDATED FOR SKR 3 EZ - PIN IS MARKED "TB" ON THE BOARD (presumably thermistor board)
+#control: pid
+#pid_Kp: 54.027
+#pid_Ki: 0.770
+#pid_Kd: 948.182
+min_temp: 0
+max_temp: 130
+
+
+
+[fan]
+pin: PB7                               # PG - UPDATED FOR SKR 3 EZ - PIN IS MARKED "FAN0" ON THE BOARD (Which fan? hot end or case?)
+
+
+
+[printer]
+kinematics: cartesian
+max_velocity: 300
+max_accel: 3000
+max_z_velocity: 5
+max_z_accel: 100
+
+
+
+########################################
+# EXP1 / EXP2 (display) pins
+########################################
+#
+# https://github.com/Klipper3d/klipper/blob/master/config/sample-lcd.cfg
+
+[board_pins]                                                                    # PG - This section needs to be here to make the BTT TFT35 screen work.
+aliases:
+    # EXP1 header
+    EXP1_1=PC5, EXP1_3=PB1, EXP1_5=PE9,  EXP1_7=PE11, EXP1_9=<GND>,             # PG - These pins match to the EXP1 header on the board
+    EXP1_2=PB0, EXP1_4=PE8, EXP1_6=PE10, EXP1_8=PE12, EXP1_10=<5V>,             # PG - These pins match to the EXP1 header on the board
+    # EXP2 header
+    EXP2_1=PA6, EXP2_3=PE7, EXP2_5=PB2, EXP2_7=PC4,   EXP2_9=<GND>,             # PG - These pins match to the EXP2 header on the board
+    EXP2_2=PA5, EXP2_4=PA4, EXP2_6=PA7, EXP2_8=<RST>, EXP2_10=<NC>              # PG - These pins match to the EXP2 header on the board (no comma at the end)
+
+# See the sample-lcd.cfg file for definitions of common LCD displays.
+
+
+
+######################################################################
+# 128x64 Full Graphic Creality CR10 / ENDER 3 stockdisplay
+######################################################################
+
+# (https://www.buydisplay.com/lcd-display-serial-graphic-display-128x64-st7920-white-on-blue)
+
+# This section is used for a Creality "12864" display with a single
+# ribbon cable between the display's EXP3 plug and the
+# micro-controller board's EXP1 connector.
+
+# Pinout on Stock Ender 3 Pro LCD      # PG - Added pin out section
+
+# +5v         GND                      ┌───┐
+# SID_PIN     CS_PIN                   |   |
+# SCLK_PIN    ENCODER 01               |  |
+# NOT USED    ENCODER 02               |   |
+# CLICK_PIN   BEEPER                   └───┘
+
+
+[display]
+lcd_type: st7920                       # PG - (https://www.waveshare.com/datasheet/LCD_en_PDF/ST7920.pdf)
+cs_pin: EXP1_7                         # PG - Maps to PE11 on EX1 on SKR 3 EZ
+sclk_pin: EXP1_6                       # PG - Maps to PE10 on EX1 on SKR 3 EZ
+sid_pin: EXP1_8                        # PG - Maps to PE12 on EX1 on SKR 3 EZ
+encoder_pins: ^EXP1_5, ^EXP1_3         # PG - Maps to PE9 & PB1 on EX1 on SKR 3 EZ
+click_pin: ^!EXP1_2                    # PG - Maps to PB0 on EX1 on SKR 3 EZ
+
+[output_pin beeper]
+pin: EXP1_1                            # PG - Maps to PC5 on EX1 on SKR 3 EZ
+
+
+
+# Stepper Driver Configuration
+
+########################################
+# TMC2209 configuration
+########################################
+
+# https://www.klipper3d.org/TMC_Drivers.html
+# https://www.klipper3d.org/Config_Reference.html#tmc2209
+
+[tmc2209 stepper_x]
+uart_pin: PD5                          # PG - Maps to PD5 on SKR 3 EZ
+run_current: 0.800                     # PG - Unsure if this number is okay. Max calculated current of the TMC2209 driver is 1.2 amps. 67% of this is 0.804a amps.
+#diag_pin:                             # PG - Only used for sensorless homing and was included in the template from BTT. Not needed in this set up.
+
+[tmc2209 stepper_y]
+uart_pin: PD0                          # PG - Maps to PD0 on SKR 3 EZ
+run_current: 0.800                     # PG - Unsure if this number is okay. Max calculated current of the TMC2209 driver is 1.2 amps. 67% of this is 0.804a amps.
+#diag_pin:
+
+[tmc2209 stepper_z]
+uart_pin: PE1                          # PG - Maps to PE1 on SKR 3 EZ
+run_current: 0.800                     # PG - Unsure if this number is okay. Max calculated current of the TMC2209 driver is 1.2 amps. 67% of this is 0.804a amps.
+#diag_pin:
+
+[tmc2209 stepper_z1]                   # PG - Renamed from "tmc2209_extruder" to "tmc2209 stepper_z1"
+uart_pin: PC6                          # PG - Maps to PC6 on SKR 3 EZ
+run_current: 0.800                     # PG - Unsure if this number is okay. Max calculated current of the TMC2209 driver is 1.2 amps. 67% of this is 0.804a amps.
+#diag_pin:
+
+[tmc2209 extruder]
+uart_pin: PD12                         # PG - Maps to PD5 on SKR 3 EZ
+run_current: 0.800                     # PG - Unsure if this number is okay. Max calculated current of the TMC2209 driver is 1.2 amps. 67% of this is 0.804a amps.
+#diag_pin:
+
+
+
+
+#*# <---------------------- SAVE_CONFIG ---------------------->
+#*# DO NOT EDIT THIS BLOCK OR BELOW. The contents are auto-generated.
+#*#
+#*# [extruder]
+#*# control = pid
+#*# pid_kp = 27.430
+#*# pid_ki = 1.793
+#*# pid_kd = 104.920
+#*#
+#*# [heater_bed]
+#*# control = pid
+#*# pid_kp = 69.902
+#*# pid_ki = 1.363
+#*# pid_kd = 896.489
+#*#
+#*# [bltouch]
+#*# z_offset = 0.615
+#*#
+#*# [input_shaper]
+#*# shaper_type_y = mzv
+#*# shaper_freq_y = 37.0
+#*# shaper_type_x = 2hump_ei
+#*# shaper_freq_x = 47.4
+
+
+
+
