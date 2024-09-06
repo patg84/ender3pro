@@ -2,7 +2,8 @@ https://www.klipper3d.org/Measuring_Resonances.html
 
 Requires 2 axis (x, y)
 
-###Install required software:
+Install required software:
+==========================
 
 sudo apt update
 sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-dev
@@ -10,7 +11,139 @@ sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-
 ~/klippy-env/bin/pip install -v numpy
 
 
+Add the following to the printer.cfg file:
+==========================================
+
+# ADXL345 Input Shaper Section:
+#
+# Added by PG
+#  Make sure (sudo orangepi-config) has "param_spidev_spi_bus=1" in the "u-boot env" section and that SPI is not enabled in the Hardware section. This is the SPI1 bus as seen on orangepi gpio diagrams.
+#  (make flash) needs to be run to build & configure the SPI driver on the Orange Pi (https://www.klipper3d.org/Installation.html).
+#
+# *** Run automatic or manual calibration but not both ***
+#
+# Automatic calibration of each axis (https://www.klipper3d.org/Measuring_Resonances.html#input-shaper-auto-calibration):
+#
+#    1. Run "ACCELEROMETER_QUERY" to get current ADXL345 data and verify ADXL345 chip is connected and working correctly.
+#    2. Run "SHAPER_CALIBRATE AXIS=X" to run test
+#    3. Run "SAVE_CONFIG" to save data to printer.cfg
+#    4. Run "SHAPER_CALIBRATE AXIS=Y" to run test
+#    5. Run "SAVE_CONFIG" to save data to printer.cfg
+#
+# Manual calibration of each axis (https://www.klipper3d.org/Measuring_Resonances.html#testing-custom-axes):
+#
+#    1. Run "ACCELEROMETER_QUERY" to get current ADXL345 data and verify ADXL345 chip is connected and working correctly.
+#    2. Run "TEST_RESONANCES AXIS=X' and "TEST_RESONANCES AXIS=Y" to run test and add CSV data to "/tmp" on the Pi. Once data is aquired for both axes run the following command to get recommended settings and PNGs of graphs:
+#    3. ~/klipper/scripts/calibrate_shaper.py /tmp/resonances_x_*.csv -o /tmp/shaper_calibrate_x.png
+#    4. ~/klipper/scripts/calibrate_shaper.py /tmp/resonances_y_*.csv -o /tmp/shaper_calibrate_y.png
+#    5. Recommended input shaper data will be displayed. Add this to the INPUT_SHAPER section of printer.cfg
+[mcu rpi]
+serial: /tmp/klipper_host_mcu          # This is the driver file.
+
+[adxl345]
+cs_pin: rpi:None
+spi_bus: spidev1.1                     # To get this value run, (ls /dev/spi*) to see available SPI devices.
+
+[resonance_tester]
+accel_chip: adxl345                    # Specifies the type of accelerometer chip being used.
+probe_points:                          # As per Aubey in Discord, this is where the tool head should park when running the test.
+    100, 100, 20  # Set by PG          # This should be the middle of the bed (x, y, z)
 
 
+
+=========================================================================================================================================================
+
+
+
+Compile the firmware for the orange pi:
+=======================================
 cd ~/klipper
 make menufconfig
+
+(*) Enable extra low--level configuration options
+    Micro-controller Architecture (Linux Process)
+( ) GPIO pins to set at micro-controller startup
+
+Press "Q" then "Y" to save. This will start building the required file.
+
+make clean                                                                  # Clears out dir - /home/orangepi/klipper/out/
+make                                                                        # Build micro-controller firmware
+
+
+
+
+
+
+
+
+
+PROCESS FOR GENERATING FIRMWARE FOR BTT SKR 3 EZ CONTROLLER:
+============================================================
+
+Copy "klipper.bin" using WinSCP to a new MicroSD card. Put in BTT SKR 3 EZ and boot. Pull up 192.168.2.198 and see if klipper "sees" the BTT SKR 3 EZ.
+
+
+
+
+
+
+
+
+
+
+
+
+Find the serial device:
+=======================
+
+ls /dev/serial/by-id/*
+
+
+Make sure SPI is turned on in the orange pi:
+============================================
+
+sudo orangepi-config
+System --> Hardware --> Nothing is selected
+
+
+Update the printer.cfg file:
+==========================
+
+[mcu rpi]
+serial: /tmp/klipper_host_mcu          # This is the driver file.
+
+[adxl345]
+cs_pin: rpi:None
+spi_bus: spidev1.1                     # To get this value run, (ls /dev/spi*) to see available SPI devices.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Shutdown orange pi immediately:
+===============================
+
+sudo shutdown -h now
