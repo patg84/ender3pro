@@ -11,6 +11,40 @@ sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-
 ~/klippy-env/bin/pip install -v numpy
 
 
+
+Build host process file for ASXL345:
+====================================
+
+cd ~/klipper
+make clean
+make menuconfig
+
+  Micro-controller Architecture = linux process
+
+Press "q" then "y" to save and exit
+
+make
+
+re-enable the [mcu rpi] section in printer.cfg
+
+  sudo orangepi-config
+  System --> Bootenv
+
+    verbosity=1
+    bootlogo=false
+    console=both
+    disp_mode=1920x1080p60
+    overlay_prefix=sun50i-h616
+    rootdev=UUID=635d9db0-d9c8-453e-baca-8b0e028d5dcf
+    rootfstype=ext4
+    param_spidev_spi_bus=1
+    usbstoragequirks=0x2537:0x1066:u,0x2537:0x1068:u
+
+ Save and exit
+
+restart firmware from Klipper GUI
+
+
 Add the following to the printer.cfg file:
 ==========================================
 
