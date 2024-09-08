@@ -3,7 +3,29 @@ How to setup and add the ADXL345 to Klipper:
 
 https://www.klipper3d.org/Measuring_Resonances.html
 
-Requiers 2 ADXL345 chips. (x, y)
+Requires 2 ADXL345 chips. (x, y)
+
+
+
+Enable SPI interface in Settings:
+=================================
+
+sudo orangepi-config
+  System --> Hardware --> Make sure nothing is selected
+
+  System --> Bootenv
+
+    verbosity=1
+    bootlogo=false
+    console=both
+    disp_mode=1920x1080p60
+    overlay_prefix=sun50i-h616
+    rootdev=UUID=635d9db0-d9c8-453e-baca-8b0e028d5dcf
+    rootfstype=ext4
+    param_spidev_spi_bus=1
+    usbstoragequirks=0x2537:0x1066:u,0x2537:0x1068:u
+
+  Save and exit
 
 
 
@@ -17,45 +39,11 @@ sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-
 
 
 
-Build host process file for ADXL345:
-====================================
+Build host process file for ADXL345 on orange pi:
+=================================================
 
 cd ~/klipper
-make clean
 make menuconfig
-
-  Micro-controller Architecture = linux process
-
-Press "q" then "y" to save and exit
-
-make
-
-re-enable the [mcu rpi] section in printer.cfg
-
-  sudo orangepi-config
-  System --> Bootenv
-
-    verbosity=1
-    bootlogo=false
-    console=both
-    disp_mode=1920x1080p60
-    overlay_prefix=sun50i-h616
-    rootdev=UUID=635d9db0-d9c8-453e-baca-8b0e028d5dcf
-    rootfstype=ext4
-    param_spidev_spi_bus=1
-    usbstoragequirks=0x2537:0x1066:u,0x2537:0x1068:u
-
- Save and exit
-
-restart firmware from Klipper GUI
-
-
-
-
-Compile the firmware for the orange pi:
-=======================================
-cd ~/klipper
-make menufconfig
 
 (*) Enable extra low--level configuration options
     Micro-controller Architecture (Linux Process)
@@ -64,20 +52,25 @@ make menufconfig
 Press "Q" then "Y" to save. This will start building the required file.
 
 make clean                                                                  # Clears out dir - /home/orangepi/klipper/out/
-make                                                                        # Build micro-controller firmware
+make                                                                        # Build ADXL345 linux process file
 
 
 
 Add the following to the printer.cfg file:
 ==========================================
+# https://www.klipper3d.org/Measuring_Resonances.html
 
 # ADXL345 Input Shaper Section:
 #
 # Added by PG
-#  Make sure (sudo orangepi-config) has "param_spidev_spi_bus=1" in the "u-boot env" section and that SPI is not enabled in the Hardware section. This is the SPI1 bus as seen on orangepi gpio diagrams.
-#  (make flash) needs to be run to build & configure the SPI driver on the Orange Pi (https://www.klipper3d.org/Installation.html).
+#  Make sure (sudo orangepi-config) has "param_spidev_spi_bus=1" in the "u-boot env" section and that SPI is not enabled in the hardware section!! This is the SPI1 bus as seen on orangepi gpio diagrams.
 #
-# *** Run automatic or manual calibration but not both ***
+# *** Run automatic or manual calibration but not both! ***
+# 
+# Find the MCU device by path or id (path is preferred):
+# 
+#    ls /dev/serial/by-path/*
+#    ls /dev/serial/by-id/*
 #
 # Automatic calibration of each axis (https://www.klipper3d.org/Measuring_Resonances.html#input-shaper-auto-calibration):
 #
@@ -94,6 +87,7 @@ Add the following to the printer.cfg file:
 #    3. ~/klipper/scripts/calibrate_shaper.py /tmp/resonances_x_*.csv -o /tmp/shaper_calibrate_x.png
 #    4. ~/klipper/scripts/calibrate_shaper.py /tmp/resonances_y_*.csv -o /tmp/shaper_calibrate_y.png
 #    5. Recommended input shaper data will be displayed. Add this to the INPUT_SHAPER section of printer.cfg
+
 [mcu rpi]
 serial: /tmp/klipper_host_mcu          # This is the driver file.
 
@@ -106,42 +100,3 @@ accel_chip: adxl345                    # Specifies the type of accelerometer chi
 probe_points:                          # As per Aubey in Discord, this is where the tool head should park when running the test.
     100, 100, 20  # Set by PG          # This should be the middle of the bed (x, y, z)
 
-
-
-=========================================================================================================================================================
-
-
-
-
-
-
-
-
-Find the serial device:
-=======================
-
-ls /dev/serial/by-id/*
-
-
-Make sure SPI is turned on in the orange pi:
-============================================
-
-sudo orangepi-config
-System --> Hardware --> Nothing is selected
-
-
-
-
-
-
-
-
-
-
-
-
-
-Shutdown orange pi immediately:
-===============================
-
-sudo shutdown -h now
