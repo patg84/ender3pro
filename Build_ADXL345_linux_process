@@ -1,9 +1,14 @@
+How to setup and add the ADXL345 to Klipper:
+============================================
+
 https://www.klipper3d.org/Measuring_Resonances.html
 
-Requires 2 axis (x, y)
+Requiers 2 ADXL345 chips. (x, y)
 
-Install required software:
-==========================
+
+
+Install required software on orange pi first:
+=============================================
 
 sudo apt update
 sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-dev
@@ -12,7 +17,7 @@ sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-
 
 
 
-Build host process file for ASXL345:
+Build host process file for ADXL345:
 ====================================
 
 cd ~/klipper
@@ -43,6 +48,24 @@ re-enable the [mcu rpi] section in printer.cfg
  Save and exit
 
 restart firmware from Klipper GUI
+
+
+
+
+Compile the firmware for the orange pi:
+=======================================
+cd ~/klipper
+make menufconfig
+
+(*) Enable extra low--level configuration options
+    Micro-controller Architecture (Linux Process)
+( ) GPIO pins to set at micro-controller startup
+
+Press "Q" then "Y" to save. This will start building the required file.
+
+make clean                                                                  # Clears out dir - /home/orangepi/klipper/out/
+make                                                                        # Build micro-controller firmware
+
 
 
 Add the following to the printer.cfg file:
@@ -89,39 +112,6 @@ probe_points:                          # As per Aubey in Discord, this is where 
 
 
 
-Compile the firmware for the orange pi:
-=======================================
-cd ~/klipper
-make menufconfig
-
-(*) Enable extra low--level configuration options
-    Micro-controller Architecture (Linux Process)
-( ) GPIO pins to set at micro-controller startup
-
-Press "Q" then "Y" to save. This will start building the required file.
-
-make clean                                                                  # Clears out dir - /home/orangepi/klipper/out/
-make                                                                        # Build micro-controller firmware
-
-
-
-
-
-
-
-
-
-PROCESS FOR GENERATING FIRMWARE FOR BTT SKR 3 EZ CONTROLLER:
-============================================================
-
-Copy "klipper.bin" using WinSCP to a new MicroSD card. Put in BTT SKR 3 EZ and boot. Pull up 192.168.2.198 and see if klipper "sees" the BTT SKR 3 EZ.
-
-
-
-
-
-
-
 
 
 
@@ -138,32 +128,6 @@ Make sure SPI is turned on in the orange pi:
 
 sudo orangepi-config
 System --> Hardware --> Nothing is selected
-
-
-Update the printer.cfg file:
-==========================
-
-[mcu rpi]
-serial: /tmp/klipper_host_mcu          # This is the driver file.
-
-[adxl345]
-cs_pin: rpi:None
-spi_bus: spidev1.1                     # To get this value run, (ls /dev/spi*) to see available SPI devices.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
