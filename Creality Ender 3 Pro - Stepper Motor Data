@@ -4,7 +4,7 @@ Last Updated: 09.09.24
 Creality Ender 3 Pro Stepper Motor Max Amps:
 ============================================
 
-As per Linna at Keli Motor Group Co., LTD. the peak current per motor is below:
+As per Linna at Keli Motor Group Co., LTD. (in email) the peak current per motor is below:
 
 BJ42D15-26V09, the peak current is 0.84 amps        # This motor is used for the X, Y, and Z axes.
 BJ42D22-23V01, the peak current is 1.4 amps         # This motor is used for the Extruder.
