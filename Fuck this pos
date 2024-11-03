@@ -1,6 +1,7 @@
 z_tilt]
 z_positions:         # left the right z motor locations in space. This will be off the build plate.
     -33,94           # Coordinates in x,y. Home then move nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate.
+                     # 
     261,94          
 points:
     50,120          
