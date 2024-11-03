@@ -1,12 +1,19 @@
 z_tilt]
-z_positions:         # left the right z motor locations in space. This will be off the build plate.
-    -33,94           # Coordinates in x,y. Home then move nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate.
-                     # 
-    261,94          
+z_positions:         # Left and right Z motor locations in space. This will be off the build plate. (Ender 3 Pro, back left and back right while looking at the front of the unit).
+                     # Coordinates below are in x,y from the 0,0 point which is directly under the nozzle at the front left of the build plate.
+                     # Make sure x,y below are indented or this won't work.
+    -33,94           # This is the left stepper. Home and jog nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Jog Z axis until cutout on left stepper coupler is in line with Y axis. Measure with a mm ruler from the nozzle to the center of the left Z rod. That's the X value here, -33.00mm.
+
+    261,94           # This is the right stepper. Home and jog nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Jog Z axis until cutout on right coupler on stepper aligns with X axis (point inward towards bed to get accurate measurement). Put a post it note on the build plate in line with this cutout. Measure with mm ruler 3mm in from front of build plate backwards (along Y axis) until you are in line with the left Z coupling. That's the Y value here, 94.00mm.
+
 points:
     50,120          
     221,120          
-speed: 50
-horizontal_move_z: 5
-retries: 6
-retry_tolerance: 0.0025
+
+speed: 50                          # How fast in mm/sec are we moving between probing points after the Z axis is raised. This should probably be under the horizontal_move_z command below.
+
+horizontal_move_z: 5               # How far up are we moving the Z axis between left and right probing. High enough that it doesn't drag the nozzle across the bed.
+
+retries: 6                         # How many times to retry until the tolerance is correct.
+
+retry_tolerance: 0.0025            # Needs to be within this Z axis tolerance or else retries happen.
