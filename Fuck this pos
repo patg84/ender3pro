@@ -16,11 +16,13 @@ To get the Y value follow this:
     261,94           # This is the right Z motor
 
 
-points:                            # Points to probe with CRTouch on build surface.
-                                   # X value is 
+points:                            # Points to probe with CRTouch on build surface. There's 2 for the Ender 3 Pro because only 2 steppers exist.
+                                   # X value is 30mm in from the sides of the build plate. Move the X gantry all the way to the right, drop CRTouch pin, measure from egde of build plate to pin. You'll wind up with 30mm. So do the same for the other side durr.
                                    # Y value is 120 which is half of the build plate. Y's max travel is 225. Y's min travel is -15. So, 225 minus negative 15 = 240. 240/2 = 120.
+
     50,120                         # Left stepper x,y.
     221,120                        # Right stepper x,y
+
 
 speed: 50                          # How fast in mm/sec are we moving between probing points after the Z axis is raised. This should probably be under the horizontal_move_z command below.
 
