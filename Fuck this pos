@@ -2,13 +2,25 @@ z_tilt]
 z_positions:         # Left and right Z motor locations in space. This will be off the build plate. (Ender 3 Pro, back left and back right while looking at the front of the unit).
                      # Coordinates below are in x,y from the 0,0 point which is directly under the nozzle at the front left of the build plate.
                      # Make sure x,y below are indented or this won't work.
-    -33,94           # This is the left stepper. Home and jog nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Jog Z axis until cutout on left stepper coupler is in line with Y axis. Measure with a mm ruler from the nozzle to the center of the left Z rod. That's the X value here, -33.00mm.
 
-    261,94           # This is the right stepper. Home and jog nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Jog Z axis until cutout on right coupler on stepper aligns with X axis (point inward towards bed to get accurate measurement). Put a post it note on the build plate in line with this cutout. Measure with mm ruler 3mm in from front of build plate backwards (along Y axis) until you are in line with the left Z coupling. That's the Y value here, 94.00mm.
+# To get the X value follow this:
+# This is the left stepper. Home and jog nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Jog Z axis until cutout on left stepper coupler is in line with Y axis. Measure with a mm ruler from the nozzle to the center of the left Z rod. That's the X value here, -33.00mm.
+    
 
-points:
-    50,120          
-    221,120          
+
+To get the Y value follow this:
+
+# This is the right stepper. Home and jog nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Jog Z axis until cutout on right coupler on stepper aligns with X axis (point inward towards bed to get accurate measurement). Put a post it note on the build plate in line with this cutout. Measure with mm ruler 3mm in from front of build plate backwards (along Y axis) until you are in line with the left Z coupling. That's the Y value here, 94.00mm.
+
+    -33,94           # This is the left Z motor
+    261,94           # This is the right Z motor
+
+
+points:                            # Points to probe with CRTouch on build surface.
+                                   # X value is 
+                                   # Y value is 120 which is half of the build plate. Y's max travel is 225. Y's min travel is -15. So, 225 minus negative 15 = 240. 240/2 = 120.
+    50,120                         # Left stepper x,y.
+    221,120                        # Right stepper x,y
 
 speed: 50                          # How fast in mm/sec are we moving between probing points after the Z axis is raised. This should probably be under the horizontal_move_z command below.
 
