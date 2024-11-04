@@ -5,13 +5,13 @@ z_positions:                       # Left and right Z motor locations in space. 
 
 ####################################
 
-# To get the X location value of the steppers follow this:
+# To get the X location value of the stepper's position follow this:
 
 # This is the left stepper. Home and jog nozzle to 0,0. Nozzle will be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Raise Z axis so it doesn't slam into the bed for the next step. Look top down at Z coupler and jog Z axis up until the cutout on left stepper coupler is in line with Y axis pointing backwards. Looking at the back side of the printer, measure with a mm ruler starting from 3mm in on the build plate. Line it up with the split in the left Z coupler. That's the X value here, -29.5mm. It's a negative number because it's to the left of the 0,0. in Cartesian coordinates when looking at the printer from the front.
 
 ####################################
     
-# To get the Y location value of the steppers follow this:
+# To get the Y location value of the stepper's position follow this:
 
 # This is the right stepper. Home and jog nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Jog Z axis until cutout on right coupler on stepper aligns with X axis (point inward towards bed to get accurate measurement). Put a post it note on the build plate in line with this cutout. Measure with mm ruler 3mm in from front of build plate backwards (along Y axis) until you are in line with the left Z coupling. That's the Y value here, 94.00mm.
 
