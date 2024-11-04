@@ -1,19 +1,21 @@
-z_tilt]
-z_positions:         # Left and right Z motor locations in space. This will be off the build plate. (Ender 3 Pro, steppers are to the back left and back right while looking at the front of the unit).
-                     # Coordinates below are in x,y from the 0,0 point which is directly under the nozzle at the front left of the build plate (3mm in from the left and front of the build plate).
-                     # Make sure x,y values below are indented 4 spaces or this won't work.
+z_tilt]                            # Enable to activate dual or triple Z auto level in realation to the build plate.
+z_positions:                       # Left and right Z motor locations in space. This will be off the build plate. (Ender 3 Pro, steppers are to the back left and back right while looking at the front of the unit).
+                                   # Coordinates below are in x,y from the 0,0 point which is directly under the nozzle at the front left of the build plate (3mm in from the left and front of the build plate).
+                                   # Make sure x,y values below are indented 4 spaces or this won't work.
+
+####################################
 
 # To get the X location value of the steppers follow this:
 
-# This is the left stepper. Home and jog nozzle to 0,0. Nozzle will be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Raise Z axis so it doesn't slam into the bed for the next step. Look top down at Z coupler and jog Z axis up until the cutout on left stepper coupler is in line with Y axis pointing backwards. Looking at the back side of the printer, measure with a mm ruler from the nozzle to the center of the left Z rod. That's the X value here, -33.00mm.
+# This is the left stepper. Home and jog nozzle to 0,0. Nozzle will be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Raise Z axis so it doesn't slam into the bed for the next step. Look top down at Z coupler and jog Z axis up until the cutout on left stepper coupler is in line with Y axis pointing backwards. Looking at the back side of the printer, measure with a mm ruler starting from 3mm in on the build plate. Line it up with the split in the left Z coupler. That's the X value here, -29.5mm. It's a negative number because it's to the left of the 0,0. in Cartesian coordinates when looking at the printer from the front.
+
+####################################
     
-
-
 # To get the Y location value of the steppers follow this:
 
 # This is the right stepper. Home and jog nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Jog Z axis until cutout on right coupler on stepper aligns with X axis (point inward towards bed to get accurate measurement). Put a post it note on the build plate in line with this cutout. Measure with mm ruler 3mm in from front of build plate backwards (along Y axis) until you are in line with the left Z coupling. That's the Y value here, 94.00mm.
 
-    -33,94                         # This is the left Z motor (stepper_z)
+    -29.5,94                       # This is the left Z motor (stepper_z)
     261,94                         # This is the right Z motor (stepper_z1)
 ####################################
 points:                            # The points to probe with the CRTouch on build surface. There's 2 for the Ender 3 Pro because only 2 steppers exist.
