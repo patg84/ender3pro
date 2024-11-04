@@ -22,11 +22,15 @@ z_positions:                       # Left and right Z motor locations in space. 
 ####################################
 points:                            # The points to probe with the CRTouch on build surface. There's 2 for the Ender 3 Pro because only 2 steppers exist.
                                    
-                                   # To find the X position value for the right stepper, do this side first. Move the X gantry all the way to the right, note the X value (251) in the GUI or KlipperScreen, drop CRTouch pin, jog the Z axis down a bit but don't push the pin up, use the pin to me asure against. Measure from edge of build plate to pin. In my case it's 27mm. Subtract 27 from the max X value of (251). 251-27 = 224. 224 is the right stepper X value for the position below. Do the same for the left side of the plate.
+                                   # To find the X position value for the right stepper, do this side first. Move the X gantry all the way to the right, note the X value (251) in the GUI or KlipperScreen, drop CRTouch pin, jog the Z axis down a bit but don't push the pin up, use the pin to me asure against. Measure from edge of build plate to pin. In my case it's 27mm. Subtract 27 from the max X value of (251). 251 is the right stepper X value for the position below.
+
+                                   # To find the X position value for the left stepper, home, then jog to 0,0. From out config we know that our CRTouch is negative 45mm away from the nozzle (x_offset: -45.00). We can use this value along with 0,0 to come 27mm inwards from the 3mm buffer at the left edge of the build plate. Home all, jog to 0,0, this puts the nozzle at 0,0 (3mm inwards from the front and left edge of the build plate). Move the Y axis to 122.50 so we have some room to probe on the build plate. Nozzle's at 0,0. Move the X axis to the right 45mm. That will put the CRTouch on this 3mm buffer line. Lower the Z axis by 5mm. BLTOUCH_DEBUG command=pin_down. You'll see you're right where we need it. Because we're moving the X axis to the right we need to add the X value on the screen of 45mm to the 27mm we got on the right side (45+27 = 72mm). 72 is the left stepper X position. This will make the CRTouch probe the left and right sides of the build plate evenly. 
+
+72mm is magic number
                                    
                                    # Y value is 122.50 which is half of the build plate (245). Y's max travel is 230. Y's min travel is -15. So, 230 minus negative 15 = 245. 245/2 = 122.50. The Z steppers are in line with each other so both use 122.50mm as seen below. Doing it this way will center the build plate under the probe and make sure probing takes place in the center of the plate so it doesn't flex.
 
-    50,122.50                      # Left stepper x,y (stepper_z)
+    72,122.50                      # Left stepper x,y (stepper_z)
     221,122.50                     # Right stepper x,y (stepper_z1)
 ####################################
 speed: 50                          # How fast in mm/sec are we moving between probing points after the Z axis is raised. This should probably be under the horizontal_move_z command below.
