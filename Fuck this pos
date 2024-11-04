@@ -1,6 +1,6 @@
 z_tilt]
-z_positions:         # Left and right Z motor locations in space. This will be off the build plate. (Ender 3 Pro, back left and back right while looking at the front of the unit).
-                     # Coordinates below are in x,y from the 0,0 point which is directly under the nozzle at the front left of the build plate.
+z_positions:         # Left and right Z motor locations in space. This will be off the build plate. (Ender 3 Pro, steppers are to the back left and back right while looking at the front of the unit).
+                     # Coordinates below are in x,y from the 0,0 point which is directly under the nozzle at the front left of the build plate (3mm in from the left and front of the build plate).
                      # Make sure x,y below are indented 4 spaces or this won't work.
 
 # To get the X value follow this:
@@ -12,8 +12,8 @@ To get the Y value follow this:
 
 # This is the right stepper. Home and jog nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Jog Z axis until cutout on right coupler on stepper aligns with X axis (point inward towards bed to get accurate measurement). Put a post it note on the build plate in line with this cutout. Measure with mm ruler 3mm in from front of build plate backwards (along Y axis) until you are in line with the left Z coupling. That's the Y value here, 94.00mm.
 
-   -33,94                          # This is the left Z motor (stepper_z)
-   261,94                          # This is the right Z motor (stepper_z1)
+    -33,94                         # This is the left Z motor (stepper_z)
+    261,94                         # This is the right Z motor (stepper_z1)
 ####################################
 points:                            # The points to probe with the CRTouch on build surface. There's 2 for the Ender 3 Pro because only 2 steppers exist.
                                    
@@ -21,8 +21,8 @@ points:                            # The points to probe with the CRTouch on bui
                                    
                                    # Y value is 122.50 which is half of the build plate (245). Y's max travel is 230. Y's min travel is -15. So, 230 minus negative 15 = 245. 245/2 = 122.50. The Z steppers are in line with each other so both use 122.50mm as seen below. Doing it this way will center the build plate under the probe and make sure probing takes place in the center of the plate so it doesn't flex.
 
-   50,122.50                       # Left stepper x,y (stepper_z)
-   221,122.50                      # Right stepper x,y (stepper_z1)
+    50,122.50                      # Left stepper x,y (stepper_z)
+    221,122.50                     # Right stepper x,y (stepper_z1)
 ####################################
 speed: 50                          # How fast in mm/sec are we moving between probing points after the Z axis is raised. This should probably be under the horizontal_move_z command below.
 ####################################
