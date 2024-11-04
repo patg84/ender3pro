@@ -15,10 +15,10 @@ z_positions:                       # Left and right Z motor locations in space. 
     
 # To get the Y location value of the stepper's position follow this:
 
-# This applies to both the left and right stepper motors as long as they're in line with each other (Ender 3 Pro, Prusa, etc.). Home and jog nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Raise Z axis by 10 so it doesn't slam into the bed for the next step. Jog Z axis until cutout on left coupler on stepper aligns with X axis (point inward towards bed to get accurate measurement). Put a post it note on the build plate in line with this cutout or stick small millimeter ruler in cutout and lie across build plate. Measure with mm ruler 3mm in from front of build plate backwards (along Y axis) until you are in line with the left Z coupling cutout (to the post it note or small ruler). That's the Y value here, 94.00mm.
+# This applies to both the left and right stepper motors as long as they're in line with each other (Ender 3 Pro, Prusa, etc.). Home and jog nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Raise Z axis by 10 so it doesn't slam into the bed for the next step. Jog Z axis until cutout on left coupler on stepper aligns with X axis (point inward towards bed to get accurate measurement). Put a post it note on the build plate in line with this cutout or stick the stock scraper in the cutout and lie it across build plate. Measure up to the scraper with the mm ruler, stay close to the left edge of the build plate, 3mm in from front of build plate backwards (along Y axis) until you are in line with the left Z coupling cutout (to the post it note or scraper). That's the Y value here, 92.00mm.
 
-    -29.5,94                       # This is the left Z motor (stepper_z)
-    258.5,94                       # This is the right Z motor (stepper_z1)
+    -29.5,92                       # This is the left Z motor (stepper_z)
+    258.5,92                       # This is the right Z motor (stepper_z1)
 ####################################
 points:                            # The points to probe with the CRTouch on build surface. There's 2 for the Ender 3 Pro because only 2 steppers exist.
                                    
