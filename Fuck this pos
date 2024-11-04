@@ -1,10 +1,11 @@
 z_tilt]
 z_positions:         # Left and right Z motor locations in space. This will be off the build plate. (Ender 3 Pro, steppers are to the back left and back right while looking at the front of the unit).
                      # Coordinates below are in x,y from the 0,0 point which is directly under the nozzle at the front left of the build plate (3mm in from the left and front of the build plate).
-                     # Make sure x,y below are indented 4 spaces or this won't work.
+                     # Make sure x,y values below are indented 4 spaces or this won't work.
 
-# To get the X value follow this:
-# This is the left stepper. Home and jog nozzle to 0,0. Nozzle should be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Jog Z axis until cutout on left stepper coupler is in line with Y axis. Measure with a mm ruler from the nozzle to the center of the left Z rod. That's the X value here, -33.00mm.
+# To get the X location value of the stepper follow this:
+
+# This is the left stepper. Home and jog nozzle to 0,0. Nozzle will be in front left corner of build plate 3mm in from the left and 3mm back from the front of the plate. Raise Z axis so it doesn't slam into the bed for the next step. Look top down at Z coupler and jog Z axis until cutout on left stepper coupler is in line with Y axis. Measure with a mm ruler from the nozzle to the center of the left Z rod. That's the X value here, -33.00mm.
     
 
 
