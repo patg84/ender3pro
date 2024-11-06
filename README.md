@@ -45,8 +45,8 @@ Last updated: 11.04.24
 2. Filament Sensor using original Ender Z stop switch.
 
 
-#
 
-Pi Cheat Sheet Commands:
+
+# Pi Cheat Sheet Commands:
 
 Shutdown orange pi immediately:      sudo shutdown -h now
