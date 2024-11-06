@@ -1,4 +1,4 @@
-# Ender 3 Pro
+# Pat's Modified Ender 3 Pro
 Klipper configs & How-Tos for Ender 3 Pro
 
 Last updated: 11.04.24
