@@ -44,6 +44,20 @@ Last updated: 11.06.24
 2. Filament Sensor using original Ender Z stop switch.
 
 
+# OrcaSilcer Important Notes:
+
+1. Download and install newest version from (https://github.com/SoftFever/OrcaSlicer/releases)
+2. Extract to folder and run.
+3. Saved profile data will load from here (%APPDATA%\OrcaSlicer) AKA (C:\Users\Pat\AppData\Roaming\OrcaSlicer)
+
+
+
+# Use this to tune Klipper:
+(https://ellis3dp.com/Print-Tuning-Guide/)
+
+
+
+
 
 
 # Pi Cheat Sheet Commands:
