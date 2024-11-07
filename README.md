@@ -34,7 +34,8 @@ Klipper Configs & How-To Guides for Ender 3 Pro
 
 # Additional Calibration Steps for Accurate Prints:
 
-1. Calibrate e-Steps
+1. Calibrate e-Steps via the hot method (https://ellis3dp.com/Print-Tuning-Guide/articles/extruder_calibration.html)
+2. 
 
 
 
