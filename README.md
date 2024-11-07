@@ -12,7 +12,7 @@ Last updated: 11.06.24
 
 
 
-# Calibration Order:
+# Initial Calibration Order After Changing Parts:
 
 1. Heat bed to 60°C for PETG (Garolite surface) (nozzle will be at 190°C, for my reference)
 2. Screw down thumb wheels, then back off one turn
