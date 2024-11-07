@@ -1,7 +1,7 @@
-# Pat's Modified Ender 3 Pro
-Klipper configs & How-Tos for Ender 3 Pro
-
 Last updated: 11.06.24
+
+# Pat's Modified Ender 3 Pro
+Klipper Configs & How-To Guides for Ender 3 Pro
 
 
 
