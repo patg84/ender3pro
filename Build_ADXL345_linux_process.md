@@ -1,4 +1,38 @@
-How to setup and add the ADXL345 to Klipper:
+######################################
+# Build ADXL345 Linux Process
+######################################
+
+
+Prerequisite for Getting the Linux Host Process to Run:
+#######################################################
+
+https://klipper.discourse.group/t/armbian-kernel-klipper-host-mcu-got-error-1-in-sched-setschedule/1193
+https://chatgpt.com/c/670dedfa-7a90-8006-b17e-46cd8f1e2e09
+
+1. Locate kernel configuration file:
+
+  ls /boot/config-$(uname -r)
+
+2. Check if CONFIG_RT_GROUP_SCHED is enabled:
+
+  grep CONFIG_RT_GROUP_SCHED /boot/config-$(uname -r)
+ ?
+ ?
+  sudo sysctl -w kernel.sched_rt_runtime_us=-1
+
+4. Permanant Fix:
+
+  echo "kernel.sched_rt_runtime_us = -1" | sudo tee /etc/sysctl.d/10-disable-rt-group-limit.conf          # Disable real time scheduling
+  sudo sysctl -p /etc/sysctl.d/10-disable-rt-group-limit.conf                                             # Apply the setting immediately
+
+5. Check state:
+
+  grep CONFIG_RT_GROUP_SCHED /boot/config-$(uname -r)
+
+
+
+
+How to Setup and Add the ADXL345 to Klipper:
 ============================================
 
 https://www.klipper3d.org/Measuring_Resonances.html
@@ -7,7 +41,7 @@ Requires 2 ADXL345 chips. (x, y)
 
 
 
-Enable SPI interface in Settings:
+Enable SPI Interface in Settings:
 =================================
 
 sudo orangepi-config
@@ -20,44 +54,50 @@ sudo orangepi-config
     console=both
     disp_mode=1920x1080p60
     overlay_prefix=sun50i-h616
-    rootdev=UUID=635d9db0-d9c8-453e-baca-8b0e028d5dcf
+    rootdev=UUID=635d9db0-d9c8-453e-baca-8b0e028d5dcf          # Random UUID - Do not change
     rootfstype=ext4
-    param_spidev_spi_bus=1
-    usbstoragequirks=0x2537:0x1066:u,0x2537:0x1068:u
+    param_spidev_spi_bus=1                                     # <------------ Add this line only!
+    usbstoragequirks=0x2537:0x1066:u,0x2537:0x1068:u           # This line gets added later automatically
 
-  Save, Back, and Exit
+  Save, Back, Exit, and Reboot
 
 
 
-Install required software on orange pi first:
+Install Required Software on Orange PI First:
 =============================================
 
 sudo apt update
 sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-dev
 
-~/klippy-env/bin/pip install -v numpy
+or run it as one line:
+     sudo apt update && sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-dev -y
+
+
+~/klippy-env/bin/pip install -v numpy                         # Installs NumPy
 
 
 
-Build host process file for ADXL345 on orange pi:
+
+Build Host Process File for ADXL345 on Orange PI:
 =================================================
 
 cd ~/klipper
 make menuconfig
 
 (*) Enable extra low--level configuration options
-    Micro-controller Architecture (Linux Process)
+    Micro-controller Architecture (Linux Process)             # Change from "STM32" to "Linux Process"
 ( ) GPIO pins to set at micro-controller startup
 
-Press "Q" then "Y" to save. This will start building the required file.
+Press "Q" then "Y" to save.
 
-make clean                                                                  # Clears out dir - /home/orangepi/klipper/out/
-make                                                                        # Build ADXL345 linux process file
+make clean                                                    # Clears out dir - /home/orangepi/klipper/out/
+make                                                          # Build ADXL345 linux process file
 
 
 
-Add the following to the printer.cfg file:
+Add the Following to the printer.cfg File:
 ==========================================
+
 # https://www.klipper3d.org/Measuring_Resonances.html
 
 # ADXL345 Input Shaper Section:
@@ -100,3 +140,8 @@ accel_chip: adxl345                    # Specifies the type of accelerometer chi
 probe_points:                          # As per Aubey in Discord, this is where the tool head should park when running the test.
     100, 100, 20  # Set by PG          # This should be the middle of the bed (x, y, z)
 
+
+
+
+Save & Restart
+==============

@@ -6,8 +6,8 @@ Creality Ender 3 Pro Stepper Motor Max Amps:
 
 As per Linna at Keli Motor Group Co., LTD. (in email) the peak current per motor is below:
 
-BJ42D15-26V09, the peak current is 0.84 amps        # This motor is used for the X, Y, and Z axes.
-BJ42D22-23V01, the peak current is 1.4 amps         # This motor is used for the Extruder.
+BJ42D15-26V09, the peak current is 0.84 amps            # This motor (42-34) is used for the X, Y, and Z axes.
+BJ42D22-23V01, the peak current is 1.4 amps             # This motor (42-40) is used for the Extruder.
 
 
 
@@ -18,15 +18,18 @@ https://docs.vorondesign.com/community/howto/120decibell/calculating_driver_curr
 https://web.archive.org/web/20240909132258/https%3A%2F%2Fdocs.vorondesign.com%2Fcommunity%2Fhowto%2F120decibell%2Fcalculating_driver_current.html
 
 
-To calculate Maximum Run Current:
+To Calculate Maximum Run Current:
 =================================
+
+Data below is correct and ready to use in printer.cfg
+
 
 Peak Current * 0.707 = Maximum Run Current in RMS (Root Mean Squared)
 
 Round down to the nearest 0.1
 
-BJ42D15-26V09 - 0.84 * 0.707 = 0.59388 = (Rounded down the to nearest 0.1) = 0.5 amps
-BJ42D22-23V01 - 1.4 * 0.707  = 0.9898  = (Rounded down the to nearest 0.1) = 0.9 amps
+BJ42D15-26V09 - 0.84 * 0.707 = 0.59388 = (Rounded down the to nearest 0.1) = 0.5 amps           # X, Y, and Z axes.
+BJ42D22-23V01 - 1.4 * 0.707  = 0.9898  = (Rounded down the to nearest 0.1) = 0.9 amps           # Extruder
 
 
 
