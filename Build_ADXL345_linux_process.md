@@ -1,10 +1,7 @@
-######################################
 # Build ADXL345 Linux Process
-######################################
 
 
-Prerequisite for Getting the Linux Host Process to Run:
-#######################################################
+# Prerequisite for Getting the Linux Host Process to Run:
 
 https://klipper.discourse.group/t/armbian-kernel-klipper-host-mcu-got-error-1-in-sched-setschedule/1193
 https://chatgpt.com/c/670dedfa-7a90-8006-b17e-46cd8f1e2e09
@@ -32,8 +29,7 @@ https://chatgpt.com/c/670dedfa-7a90-8006-b17e-46cd8f1e2e09
 
 
 
-How to Setup and Add the ADXL345 to Klipper:
-============================================
+# How to Setup and Add the ADXL345 to Klipper:
 
 https://www.klipper3d.org/Measuring_Resonances.html
 
@@ -41,8 +37,7 @@ Requires 2 ADXL345 chips. (x, y)
 
 
 
-Enable SPI Interface in Settings:
-=================================
+# Enable SPI Interface in Settings:
 
 sudo orangepi-config
   System --> Hardware --> Make sure nothing is selected
@@ -63,8 +58,7 @@ sudo orangepi-config
 
 
 
-Install Required Software on Orange PI First:
-=============================================
+# Install Required Software on Orange PI First:
 
 sudo apt update
 sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-dev
@@ -78,8 +72,7 @@ or run it as one line:
 
 
 
-Build Host Process File for ADXL345 on Orange PI:
-=================================================
+# Build Host Process File for ADXL345 on Orange PI:
 
 cd ~/klipper
 make menuconfig
@@ -95,8 +88,7 @@ make                                                          # Build ADXL345 li
 
 
 
-Add the Following to the printer.cfg File:
-==========================================
+# Add the Following to the printer.cfg File:
 
 # https://www.klipper3d.org/Measuring_Resonances.html
 
@@ -143,5 +135,4 @@ probe_points:                          # As per Aubey in Discord, this is where 
 
 
 
-Save & Restart
-==============
+# Save & Restart
