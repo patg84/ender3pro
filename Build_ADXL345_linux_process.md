@@ -1,7 +1,6 @@
-# Build ADXL345 Linux Process
+# Build ADXL345 Linux Process:
 
-
-# Prerequisite for Getting the Linux Host Process to Run:
+## Prerequisite for Getting the Linux Host Process to Run:
 
 https://klipper.discourse.group/t/armbian-kernel-klipper-host-mcu-got-error-1-in-sched-setschedule/1193
 https://chatgpt.com/c/670dedfa-7a90-8006-b17e-46cd8f1e2e09
