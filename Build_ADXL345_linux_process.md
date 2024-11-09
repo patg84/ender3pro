@@ -1,34 +1,36 @@
 # Build ADXL345 Linux Process:
 
-## Prerequisite for Getting the Linux Host Process to Run:
+## Prerequisite for Getting the Linux Host Process to Run on an Orange PI (OEM Debian OS):
 
 https://klipper.discourse.group/t/armbian-kernel-klipper-host-mcu-got-error-1-in-sched-setschedule/1193
 https://chatgpt.com/c/670dedfa-7a90-8006-b17e-46cd8f1e2e09
 
-1. Locate kernel configuration file:
+1 - Locate kernel configuration file:
 
-  ls /boot/config-$(uname -r)
+    ls /boot/config-$(uname -r)
 
-2. Check if CONFIG_RT_GROUP_SCHED is enabled:
+2 - Check if CONFIG_RT_GROUP_SCHED is enabled:
 
-  grep CONFIG_RT_GROUP_SCHED /boot/config-$(uname -r)
+    grep CONFIG_RT_GROUP_SCHED /boot/config-$(uname -r)
  ?
  ?
-  sudo sysctl -w kernel.sched_rt_runtime_us=-1
+    
+    sudo sysctl -w kernel.sched_rt_runtime_us=-1
 
-4. Permanant Fix:
+4 - Permanant Fix:
 
-  echo "kernel.sched_rt_runtime_us = -1" | sudo tee /etc/sysctl.d/10-disable-rt-group-limit.conf          # Disable real time scheduling
-  sudo sysctl -p /etc/sysctl.d/10-disable-rt-group-limit.conf                                             # Apply the setting immediately
+    echo "kernel.sched_rt_runtime_us = -1" | sudo tee /etc/sysctl.d/10-disable-rt-group-limit.conf          # Disable real time scheduling
+    
+    sudo sysctl -p /etc/sysctl.d/10-disable-rt-group-limit.conf                                             # Apply the setting immediately
 
-5. Check state:
+5 - Check state:
 
-  grep CONFIG_RT_GROUP_SCHED /boot/config-$(uname -r)
-
-
+    grep CONFIG_RT_GROUP_SCHED /boot/config-$(uname -r)
 
 
-# How to Setup and Add the ADXL345 to Klipper:
+
+
+## How to Setup and Add the ADXL345 to Klipper:
 
 https://www.klipper3d.org/Measuring_Resonances.html
 
@@ -36,12 +38,14 @@ Requires 2 ADXL345 chips. (x, y)
 
 
 
-# Enable SPI Interface in Settings:
+## Enable SPI Interface in Settings:
 
-sudo orangepi-config
-  System --> Hardware --> Make sure nothing is selected
+    sudo orangepi-config
 
-  System --> Bootenv
+      System --> Hardware --> Make sure nothing is selected
+      System --> Bootenv
+
+    Add the param_spidev line below:
 
     verbosity=1
     bootlogo=false
@@ -57,7 +61,7 @@ sudo orangepi-config
 
 
 
-# Install Required Software on Orange PI First:
+## Install Required Software on Orange PI First:
 
 sudo apt update
 sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-dev
@@ -71,7 +75,7 @@ or run it as one line:
 
 
 
-# Build Host Process File for ADXL345 on Orange PI:
+## Build Host Process File for ADXL345 on Orange PI:
 
 cd ~/klipper
 make menuconfig
@@ -87,9 +91,9 @@ make                                                          # Build ADXL345 li
 
 
 
-# Add the Following to the printer.cfg File:
+## Add the Following to the printer.cfg File:
 
-# https://www.klipper3d.org/Measuring_Resonances.html
+`# https://www.klipper3d.org/Measuring_Resonances.html
 
 # ADXL345 Input Shaper Section:
 #

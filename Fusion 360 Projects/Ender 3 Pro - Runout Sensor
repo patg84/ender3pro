@@ -1,0 +1,18 @@
+# Ender 3 Pro Filament Runout Sensor
+
+### Idea:
+
+    Can't find a model I like so I'm going to create my own to repurpose the stock Z endstop which is a limit switch with a lever on it.
+
+
+### Project Details:
+
+    1. Need to reuse the existing switch
+    2. Needs to be as small as possible
+    3. Needs to mount to the X gantry to the left of where the extruder motor used to be
+    4. If a bearing is to be used, design it to use a 608 open bearing
+
+
+### Design Quirks:
+
+    1. 
