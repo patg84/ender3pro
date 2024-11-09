@@ -1,6 +1,6 @@
-# Build ADXL345 Linux Process:
+# Klipper Resonance Tester - ADXL345 Linux Build Process:
 
-## Prerequisite for Getting the Linux Host Process to Run on an Orange PI (OEM Debian OS):
+## 📌🧪 Prerequisite for Getting the Linux Host Process to Run on an Orange PI (OEM Debian OS):
 
 https://klipper.discourse.group/t/armbian-kernel-klipper-host-mcu-got-error-1-in-sched-setschedule/1193
 https://chatgpt.com/c/670dedfa-7a90-8006-b17e-46cd8f1e2e09
@@ -9,13 +9,13 @@ https://chatgpt.com/c/670dedfa-7a90-8006-b17e-46cd8f1e2e09
 
     ls /boot/config-$(uname -r)
 
-2 - Check if CONFIG_RT_GROUP_SCHED is enabled:
+2 - Check if CONFIG_RT_GROUP_SCHED is enabled (if enabled stop here):
 
     grep CONFIG_RT_GROUP_SCHED /boot/config-$(uname -r)
- ?
- ?
+
+3 - Test this fix before commiting on step 4 (resets on reboot)    
     
-    sudo sysctl -w kernel.sched_rt_runtime_us=-1
+    sudo sysctl -w kernel.sched_rt_runtime_us=-1                                                            # Disables realtime scheduling for testing, will reset on reboot
 
 4 - Permanant Fix:
 
@@ -23,22 +23,22 @@ https://chatgpt.com/c/670dedfa-7a90-8006-b17e-46cd8f1e2e09
     
     sudo sysctl -p /etc/sysctl.d/10-disable-rt-group-limit.conf                                             # Apply the setting immediately
 
-5 - Check state:
+5 - Reboot and check state (should be enabled):
 
     grep CONFIG_RT_GROUP_SCHED /boot/config-$(uname -r)
 
+6 - Proceed with ADXL345 Setup...
 
 
-
-## How to Setup and Add the ADXL345 to Klipper:
+## 📌How to Setup and Add the ADXL345 to Klipper:
 
 https://www.klipper3d.org/Measuring_Resonances.html
 
-Requires 2 ADXL345 chips. (x, y)
+Requires 2 ADXL345 chips (x, y) that you'll wire in and flip control with a SPDT switch.
 
 
 
-## Enable SPI Interface in Settings:
+## 📌Enable SPI Interface in the OS Settings:
 
     sudo orangepi-config
 
@@ -52,90 +52,93 @@ Requires 2 ADXL345 chips. (x, y)
     console=both
     disp_mode=1920x1080p60
     overlay_prefix=sun50i-h616
-    rootdev=UUID=635d9db0-d9c8-453e-baca-8b0e028d5dcf          # Random UUID - Do not change
+    rootdev=UUID=635d9db0-d9c8-453e-baca-8b0e028d5dcf             # Random UUID - Do not change
     rootfstype=ext4
-    param_spidev_spi_bus=1                                     # <------------ Add this line only!
-    usbstoragequirks=0x2537:0x1066:u,0x2537:0x1068:u           # This line gets added later automatically
+    param_spidev_spi_bus=1                                        # <------------ Add this line only!
+    usbstoragequirks=0x2537:0x1066:u,0x2537:0x1068:u              # This line gets added later automatically
 
   Save, Back, Exit, and Reboot
 
 
 
-## Install Required Software on Orange PI First:
+## 📌Install Required Software on Orange PI First:
 
-sudo apt update
-sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-dev
+    sudo apt update
+    
+    sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-dev
 
-or run it as one line:
-     sudo apt update && sudo apt install python3-numpy python3-matplotlib libatlas-base-dev libopenblas-dev -y
-
-
-~/klippy-env/bin/pip install -v numpy                         # Installs NumPy
+    ~/klippy-env/bin/pip install -v numpy                         # Installs NumPy
 
 
 
 
-## Build Host Process File for ADXL345 on Orange PI:
+## 📌Build Host Process File for ADXL345 on Orange PI:
 
-cd ~/klipper
-make menuconfig
+    cd ~/klipper
+    
+    make menuconfig
 
-(*) Enable extra low--level configuration options
-    Micro-controller Architecture (Linux Process)             # Change from "STM32" to "Linux Process"
-( ) GPIO pins to set at micro-controller startup
+      (*) Enable extra low--level configuration options
+      Micro-controller Architecture (Linux Process)               # Change from "STM32" to "Linux Process"
+      ( ) GPIO pins to set at micro-controller startup
 
-Press "Q" then "Y" to save.
+    Press "Q" then "Y" to save.
 
-make clean                                                    # Clears out dir - /home/orangepi/klipper/out/
-make                                                          # Build ADXL345 linux process file
-
-
-
-## Add the Following to the printer.cfg File:
-
-`# https://www.klipper3d.org/Measuring_Resonances.html
-
-# ADXL345 Input Shaper Section:
-#
-# Added by PG
-#  Make sure (sudo orangepi-config) has "param_spidev_spi_bus=1" in the "u-boot env" section and that SPI is not enabled in the hardware section!! This is the SPI1 bus as seen on orangepi gpio diagrams.
-#
-# *** Run automatic or manual calibration but not both! ***
-# 
-# Find the MCU device by path or id (path is preferred):
-# 
-#    ls /dev/serial/by-path/*
-#    ls /dev/serial/by-id/*
-#
-# Automatic calibration of each axis (https://www.klipper3d.org/Measuring_Resonances.html#input-shaper-auto-calibration):
-#
-#    1. Run "ACCELEROMETER_QUERY" to get current ADXL345 data and verify ADXL345 chip is connected and working correctly.
-#    2. Run "SHAPER_CALIBRATE AXIS=X" to run test
-#    3. Run "SAVE_CONFIG" to save data to printer.cfg
-#    4. Run "SHAPER_CALIBRATE AXIS=Y" to run test
-#    5. Run "SAVE_CONFIG" to save data to printer.cfg
-#
-# Manual calibration of each axis (https://www.klipper3d.org/Measuring_Resonances.html#testing-custom-axes):
-#
-#    1. Run "ACCELEROMETER_QUERY" to get current ADXL345 data and verify ADXL345 chip is connected and working correctly.
-#    2. Run "TEST_RESONANCES AXIS=X' and "TEST_RESONANCES AXIS=Y" to run test and add CSV data to "/tmp" on the Pi. Once data is aquired for both axes run the following command to get recommended settings and PNGs of graphs:
-#    3. ~/klipper/scripts/calibrate_shaper.py /tmp/resonances_x_*.csv -o /tmp/shaper_calibrate_x.png
-#    4. ~/klipper/scripts/calibrate_shaper.py /tmp/resonances_y_*.csv -o /tmp/shaper_calibrate_y.png
-#    5. Recommended input shaper data will be displayed. Add this to the INPUT_SHAPER section of printer.cfg
-
-[mcu rpi]
-serial: /tmp/klipper_host_mcu          # This is the driver file.
-
-[adxl345]
-cs_pin: rpi:None
-spi_bus: spidev1.1                     # To get this value run, (ls /dev/spi*) to see available SPI devices.
-
-[resonance_tester]
-accel_chip: adxl345                    # Specifies the type of accelerometer chip being used.
-probe_points:                          # As per Aubey in Discord, this is where the tool head should park when running the test.
-    100, 100, 20  # Set by PG          # This should be the middle of the bed (x, y, z)
+    make clean                                                    # Clears out dir - /home/orangepi/klipper/out/
+    
+    make                                                          # Build ADXL345 linux process file
 
 
 
+## 📌Add the Following to the printer.cfg File:
 
-# Save & Restart
+    # https://www.klipper3d.org/Measuring_Resonances.html
+
+    # ADXL345 Input Shaper Section:
+    #
+    # Added by PG
+    #  Make sure (sudo orangepi-config) has "param_spidev_spi_bus=1" in the "u-boot env" section and that SPI is not enabled in the hardware section!! This is the SPI1 bus as seen on orangepi gpio diagrams.
+    #
+    # *** Run automatic or manual calibration but not both! ***
+    # 
+    # Find the MCU device by path or id (path is preferred):
+    # 
+    #    ls /dev/serial/by-path/*
+    #    ls /dev/serial/by-id/*
+    #
+    # Automatic calibration of each axis (https://www.klipper3d.org/Measuring_Resonances.html#input-shaper-auto-calibration):
+    #
+    #    1. Run "ACCELEROMETER_QUERY" to get current ADXL345 data and verify ADXL345 chip is connected and working correctly.
+    #    2. Run "SHAPER_CALIBRATE AXIS=X" to run test
+    #    3. Run "SAVE_CONFIG" to save data to printer.cfg
+    #    4. Run "SHAPER_CALIBRATE AXIS=Y" to run test
+    #    5. Run "SAVE_CONFIG" to save data to printer.cfg
+    #
+    # Manual calibration of each axis (https://www.klipper3d.org/Measuring_Resonances.html#testing-custom-axes):
+    #
+    #    1. Run "ACCELEROMETER_QUERY" to get current ADXL345 data and verify ADXL345 chip is connected and working correctly.
+    #    2. Run "TEST_RESONANCES AXIS=X' and "TEST_RESONANCES AXIS=Y" to run test and add CSV data to "/tmp" on the Pi. Once data is aquired for both axes run the following command to get recommended settings and PNGs of graphs:
+    #    3. ~/klipper/scripts/calibrate_shaper.py /tmp/resonances_x_*.csv -o /tmp/shaper_calibrate_x.png
+    #    4. ~/klipper/scripts/calibrate_shaper.py /tmp/resonances_y_*.csv -o /tmp/shaper_calibrate_y.png
+    #    5. Recommended input shaper data will be displayed. Add this to the INPUT_SHAPER section of printer.cfg
+
+    [mcu rpi]
+    serial: /tmp/klipper_host_mcu          # This is the driver file.
+
+    [adxl345]
+    cs_pin: rpi:None
+    spi_bus: spidev1.1                     # To get this value run, (ls /dev/spi*) to see available SPI devices.
+
+    [resonance_tester]
+    accel_chip: adxl345                    # Specifies the type of accelerometer chip being used.
+    probe_points:                          # As per Aubey in Discord, this is where the tool head should park when running the test.
+       100, 100, 20  # Set by PG          # This should be the middle of the bed (x, y, z)
+
+
+
+
+## 📌Save the printer.conf in the Klipper GUI & Restart the host (Orange PI)
+
+
+
+👽
