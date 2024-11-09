@@ -2,8 +2,7 @@
 
 ## 📌🧪 Prerequisite for Getting the Linux Host Process to Run on an Orange PI (OEM Debian OS):
 
-https://klipper.discourse.group/t/armbian-kernel-klipper-host-mcu-got-error-1-in-sched-setschedule/1193
-https://chatgpt.com/c/670dedfa-7a90-8006-b17e-46cd8f1e2e09
+https://klipper.discourse.group/t/armbian-kernel-klipper-host-mcu-got-error-1-in-sched-setschedule/1193 | https://chatgpt.com/c/670dedfa-7a90-8006-b17e-46cd8f1e2e09
 
 1 - Locate kernel configuration file:
 
