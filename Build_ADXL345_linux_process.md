@@ -91,9 +91,9 @@ Requires 2 ADXL345 chips (x, y) that you'll wire in and flip control with a SPDT
 
 ## 📌Add the Following to the printer.cfg File:
 
-    # https://www.klipper3d.org/Measuring_Resonances.html
-
     # ADXL345 Input Shaper Section:
+    #
+    # # https://www.klipper3d.org/Measuring_Resonances.html
     #
     # Added by PG
     #  Make sure (sudo orangepi-config) has "param_spidev_spi_bus=1" in the "u-boot env" section and that SPI is not enabled in the hardware section!! This is the SPI1 bus as seen on orangepi gpio diagrams.
@@ -131,7 +131,7 @@ Requires 2 ADXL345 chips (x, y) that you'll wire in and flip control with a SPDT
     [resonance_tester]
     accel_chip: adxl345                    # Specifies the type of accelerometer chip being used.
     probe_points:                          # As per Aubey in Discord, this is where the tool head should park when running the test.
-       100, 100, 20  # Set by PG          # This should be the middle of the bed (x, y, z)
+        100, 100, 20  # Set by PG          # This should be the middle of the bed (x, y, z)
 
 
 
