@@ -4,7 +4,7 @@
 
 Currently using (2) ADXL345 devices wired in parallel back to the GPIO header on the OPZ3 and using a 6a 125ac SPDT 3-position mini switch to toggle between the Hot End ADXL345 chip and the Bed ADXL345 chip. Middle position is off. Switch breaks 3.3v connection between the OPZ3 and each ADXL345. Couldn't figure out device SPI overlays for the OPZ3 in Debian so I resorted to the manual switch. This way I know only one chip is active at a time and I can manually cut the power to both when done with the calibration. Need to design a permanent mount for the bed sensor.
 
-All wires are crimped using dupont connectors.
+All wires are crimped using Dupont connectors.
 
 ## 📌🧪 Prerequisite for Getting the Linux Host Process to Run on an Orange PI (OEM Debian OS):
 
