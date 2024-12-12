@@ -1,0 +1,26 @@
+## Scaling Imported STL to Size
+
+1. Import STL to project folder on left.
+
+2. Insert STL into current design.
+
+3. Break link on imported component.
+
+4. Make component active.
+
+5. Select mesh body --> MESH menu --> MODIFY --> Scale Mesh
+  5a. Select the mesh and use a value of 0.10 (mesh is stl's are imported using centimeters. If youre workspace is in mm then you need to scale down by 0.10)
+  5b. OK
+
+6. Select mesh body --> MESH menu --> MODIFY --> Reduce
+  6a. Settings:
+    Type: Proportion
+    Remesh Type: Uniform
+    Proportion: 50.00
+    Preview: Enable to see if it works
+    OK
+
+7. Select mesh body --> MESH menu --> MODIFY --> Convert Mesh
+  7a. OK
+
+8. Move body where you need it.
