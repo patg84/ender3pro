@@ -15,20 +15,24 @@ Klipper Configs & How-To Guides for Ender 3 Pro
 # Initial Calibration Order After Changing Parts:
 
 1. Heat bed to 60°C for PETG (Garolite surface) (nozzle will be at 190°C, for my reference)
-2. Screw down thumb wheels, then back off one turn
-3. G28
-4. Replace nozzle if needed
-5. Set Probe Z Offset
-6. Run Z_TILT_ADJUST
-7. G28 (runs automatically)
-8. SCREWS_TILT_CALCULATE
-9. Bed mesh
-10. Save and reboot
-11. PID Hot End Tune
-12. PID Bed Tune
-13. ADXL345 for both X and Y axes
-14. Print test cube
-15. Adjust Z height on the fly
+2. Move > Home > Home All
+3. Disable motors and pull bed forward
+4. Loosen thumbwheels until they free spin > spin counterclockwise until they stop > align blue tape to front > screw clockwise X turns > back off 1 turn or if using springs, screw down thumb wheels until they stop, then back off one turn.
+5. G28
+6. Replace nozzle if needed
+8. Heat hot end (make sure nozzle face is clean prior)
+9. More > Z Calibrate (Set Probe Z Offset) > Start > Ready Post-it note > slide under nozzle while making Z adjustment (want slight drag on paper) > Accept & Reboot
+10. Heat bed to 60°C
+11. Move > Home > Home All
+12. Move > Home > Z Tilt (Run Z_TILT_ADJUST) (calibrates each Z motor, verify in console for retries. Usually takes about 6 tries to get under 0.02500)
+13. G28
+14. SCREWS_TILT_CALCULATE (wouldn't this come before z tilt adjust?). Found that a minor adjustment was needed but no more than 0 retries. Ran twice to confirm.
+15. More > Bed Mesh > Calibrate (homes then probes 9 points) > Save and Reboot
+17. Calibrate Hot End PID (Temperature > Tap current extruder temp > Type in 190 > Tap "Calibrate PID" > Accept time warning > Accept & Reboot)
+18. Calibrate Bed PID (Temperature > Tap current bed temp > Type in 60 > Tap "Calibrate PID" > Accept time warning > Accept & Reboot)
+19. ADXL345 for both X and Y axes
+20. Print test cube
+21. Adjust Z height on the fly
 
 
 
