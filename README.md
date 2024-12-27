@@ -31,8 +31,10 @@ Klipper Configs & How-To Guides for Ender 3 Pro
 17. Calibrate Hot End PID (Temperature > Tap current extruder temp > Type in 190 > Tap "Calibrate PID" > Accept time warning > Accept & Reboot)
 18. Calibrate Bed PID (Temperature > Tap current bed temp > Type in 60 > Tap "Calibrate PID" > Accept time warning > Accept & Reboot)
 19. ADXL345 for both X and Y axes
-20. Print test cube
-21. Adjust Z height on the fly
+20. Preheat Bed & Hot End to PETG (190/60)
+21. Home printer
+22. Print test cube
+23. Adjust Z height on the fly
 
 
 
