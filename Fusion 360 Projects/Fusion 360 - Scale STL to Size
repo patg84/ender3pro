@@ -4,7 +4,7 @@
 
 2. Insert STL into current design.
 
-3. Break link on imported component.
+3. Break link on imported component and capture location.
 
 4. Make component active.
 
