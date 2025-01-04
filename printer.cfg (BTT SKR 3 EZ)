@@ -1,4 +1,4 @@
-# Last Updated: 09.07.24
+# Last Updated: 01.04.25
 
 #######################################################################################################################
 # Initial template taken from (https://github.com/Klipper3d/klipper/blob/master/config/generic-bigtreetech-skr-3.cfg)
@@ -13,20 +13,16 @@
 #
 #######################################################################################################################
 #
-# Most of what's below was taken from my Klipper config when I had the Creality v4.2.7 board in the unit.
-# 
-# Pat Giacobbe
-# 08.31.24
-#
-#######################################################################################################################
-#
 # *** Things to change/check: ***
 #
-# MCU paths (one for the orange pi and one for the ADXL345)     [mcu] section
-# Leadscrew Rotation Distance                                   [stepper_z] and [stepper_z1]
-# PID Tune                                                      [extruder] and [heater_bed] sections
-# Probe Pin                                                     [probe] section
+# X MCU paths (one for the orange pi and one for the ADXL345)     [mcu] section
+# X Leadscrew Rotation Distance                                   [stepper_z] and [stepper_z1]
+# X PID Tune                                                      [extruder] and [heater_bed] sections
+# X Probe Pin                                                     [probe] section
 # Fine Tune E Steps                                             [extruder] section
+# X Run current of steppers
+# Need to permanently wire in ADXL345's with a toggle switch
+# Need to cancel print and have Z axis lift and nozzle move away to remove part from build plate.
 #
 #######################################################################################################################
 
@@ -69,9 +65,9 @@ control_pin: PE5                       # PG - Servo Signal (CTRL).
 x_offset: -45.00                       # PG - New Value (post-it note method) - Old values from Pat's Custom Marlin FW = -45.50 (dial caliper)
 y_offset: -7.00                        # PG - New Value (post-it note method) - Old values from Pat's Custom Marlin FW = -5.00
 samples: 2                             # PG - Probes twice and takes average.
-speed: 2
+speed: 5                               # PG - 10.29.24 - Changed from 2 to default of 5
+#sample_retract_dist: 50
 #z_offset: 0.0                         # PG - This is commented out after it's set automatically. See EOF (End of File).
-
 
 
 # Added by PG - https://www.youtube.com/watch?v=5vmjBXvY6BA
@@ -156,6 +152,10 @@ probe_points:                          # As per Aubey in Discord, this is where 
 
 
 
+
+
+
+
 # Bed Mesh Probe Points Section:
 #
 # Added by PG - https://youtu.be/5vmjBXvY6BA?si=Le7Bqf7OGQHqSTqf&t=678
@@ -173,6 +173,89 @@ fade_end: 10                           # Height in mm when probe mesh terminates
 
 
 
+[z_tilt]
+z_positions:
+    -29.5,94
+    258.5,94
+#   A list of X, Y coordinates (one per line; subsequent lines
+#   indented) describing the location of each bed "pivot point". The
+#   "pivot point" is the point where the bed attaches to the given Z
+#   stepper. It is described using nozzle coordinates (the X, Y position
+#   of the nozzle if it could move directly above the point). The
+#   first entry corresponds to stepper_z, the second to stepper_z1,
+#   the third to stepper_z2, etc. This parameter must be provided.
+points:
+    72,122.50
+    248,122.50
+#   A list of X, Y coordinates (one per line; subsequent lines
+#   indented) that should be probed during a Z_TILT_ADJUST command.
+#   Specify coordinates of the nozzle and be sure the probe is above
+#   the bed at the given nozzle coordinates. This parameter must be
+#   provided.
+speed: 100
+#   The speed (in mm/s) of non-probing moves during the calibration.
+#   The default is 50.
+horizontal_move_z: 5
+#   The height (in mm) that the head should be commanded to move to
+#   just prior to starting a probe operation. The default is 5.
+retries: 20
+#   Number of times to retry if the probed points aren't within
+#   tolerance.
+retry_tolerance: 0.025
+#   If retries are enabled then retry if largest and smallest probed
+#   points differ more than retry_tolerance. Note the smallest unit of
+#   change here would be a single step. However if you are probing
+#   more points than steppers then you will likely have a fixed
+#   minimum value for the range of probed points which you can learn
+#   by observing command output.
+
+
+
+
+[gcode_macro LOAD_FILAMENT]
+variable_load_distance:  75
+variable_extra_load:  5
+variable_retract_distance:  10
+gcode:
+    {% set speed = params.SPEED|default(300) %}
+    {% set max_velocity = printer.configfile.settings['extruder'].max_extrude_only_velocity * 60 %}
+    SAVE_GCODE_STATE NAME=load_state
+    G91
+    G92 E0
+    G1 E{load_distance} F{max_velocity}                                          # fast-load 75mm
+    G4 P2000                                                                     # Pause for 2 seconds
+    G1 E{extra_load} F{speed}                                                    # Load 5mm more
+    G1 E-{retract_distance} F{speed}                                             # Retract 10mm
+    RESTORE_GCODE_STATE NAME=load_state
+
+
+
+
+[gcode_macro UNLOAD_FILAMENT]
+variable_unload_distance: 80
+gcode:
+    {% set min_temp = 190 %}
+    {% set nozzle_temp = printer.extruder.temperature|default(0) %}
+    {% if nozzle_temp >= min_temp %}
+    {% set speed = params.SPEED|default(300) %}
+    {% set max_velocity = printer.configfile.settings['extruder'].max_extrude_only_velocity * 60 %}
+    SAVE_GCODE_STATE NAME=unload_state
+    G91
+    G92 E0
+    G1 E-{unload_distance} F{max_velocity} # Unload 80mm of filament
+    RESTORE_GCODE_STATE NAME=unload_state
+    {% else %}
+    M117 Nozzle temperature too low. Heat to at least {min_temp}°C! # Display warning
+    {% endif %}
+
+
+
+
+
+
+
+
+
 # Pat's Ender 3 Custom Start G-code (MicroSwiss Direct Drive)
 # chat.openai.com - Start Code 
 #
@@ -186,6 +269,9 @@ gcode:
   ; Heat bed to temperature specified in the G-code file
   M140 S{bed_temp}
   M190 S{bed_temp}                     # Wait for bed to reach temperature specified in G-code file
+
+  ; Call Z_TILT_ADJUST and level independent Z motors. Added on 11.05.24, works!
+  Z_TILT_ADJUST
 
   ; Call SCREWS_TILT_CALCULATION with a maximum deviation of 0.06. If outside this value the print will fail.
   SCREWS_TILT_CALCULATE MAX_DEVIATION=0.06
@@ -215,6 +301,7 @@ gcode:
 
 
 
+
 # Pat's Ender 3 Custom End G-code (MicroSwiss Direct Drive)
 #
 [gcode_macro END_PRINT]
@@ -238,6 +325,7 @@ gcode:
 
 
 
+
 #######################################################################################################################
 # BTT SKR 3 EZ Stepper Motor Pin Mappings:
 #
@@ -246,7 +334,7 @@ gcode:
 #
 [stepper_x]
 step_pin: PD4                          # PG - UPDATED FOR SKR 3 EZ
-dir_pin: PD3                           # PG - UPDATED FOR SKR 3 EZ
+dir_pin: !PD3                           # PG - UPDATED FOR SKR 3 EZ
 enable_pin: !PD6                       # PG - UPDATED FOR SKR 3 EZ
 microsteps: 16
 rotation_distance: 40
@@ -273,7 +361,7 @@ step_pin: PE2                          # PG - UPDATED FOR SKR 3 EZ
 dir_pin: PE3                           # PG - UPDATED FOR SKR 3 EZ & UNINVERTED
 enable_pin: !PE0                       # PG - UPDATED FOR SKR 3 EZ
 microsteps: 16
-rotation_distance: 40                  # PG - UPDATED FOR SKR 3 EZ, CHANGED FROM 8 TO 40 AS PER TEMPLATE????
+rotation_distance: 8                  # PG - UPDATED FOR SKR 3 EZ, CHANGED FROM 8 TO 40 AS PER TEMPLATE????
 #endstop_pin: ^PC0                     # PG - UPDATED FOR SKR 3 EZ - PG - Disabling default endstop pin in lieu of BLTouch
 endstop_pin: probe:z_virtual_endstop   # Added by PG to enable BLTouch
 #position_endstop: 0.0                 # PG - Disabling for BLTouch
@@ -291,7 +379,7 @@ step_pin: PD15                         # PG - UPDATED FOR SKR 3 EZ
 dir_pin: PD14                          # PG - UPDATED FOR SKR 3 EZ & UNINVERTED
 enable_pin: !PC7                       # PG - UPDATED FOR SKR 3 EZ (UNSURE OF INVERTED STATUS, COPYING FROM FIRST Z MOTOR)
 microsteps: 16
-rotation_distance: 40                  # PG - UPDATED FOR SKR 3 EZ - CHANGED FROM 8 TO 40 TO MATCH "stepper_z"
+rotation_distance: 8                  # PG - UPDATED FOR SKR 3 EZ - CHANGED FROM 8 TO 40 TO MATCH "stepper_z"
 #endstop_pin:                          # PG - UPDATED FOR SKR 3 EZ (erased previous value since no new pin exists) - PG - Disabling default endstop pin in lieu of BLTouch
 endstop_pin: probe:z_virtual_endstop   # Added by PG to enable BLTouch
 #position_endstop: 0.0                 # PG - Disabling for BLTouch
@@ -304,12 +392,11 @@ endstop_pin: probe:z_virtual_endstop   # Added by PG to enable BLTouch
 pressure_advance: 0.0370               # 06.16.24 - PG - Set using Ellis's PA Tool (https://ellis3dp.com/Print-Tuning-Guide/articles/pressure_linear_advance/pattern_method.html)
 max_extrude_only_distance: 101.0
 step_pin: PD11                         # PG - UPDATED FOR SKR 3 EZ
-dir_pin: PD10                          # PG - UPDATED FOR SKR 3 EZ
+dir_pin: !PD10                          # PG - UPDATED FOR SKR 3 EZ
 enable_pin: !PD13                      # PG - UPDATED FOR SKR 3 EZ
 microsteps: 16
-#rotation_distance: 33.500             # OLD-DATA - PG - Original value
-#rotation_distance: 23.316             # OLD DATA - PG - 3x - Final value = 20mm left over. 50 extruded, OK. Calibrated e-steps by https://www.youtube.com/watch?v=5Suy_MGGFL4
-rotation_distance: 23.0479             # 06.05.24 - PG - https://ellis3dp.com/Print-Tuning-Guide/articles/extruder_calibration.html
+#rotation_distance: 23.0479            # https://www.youtube.com/watch?v=5Suy_MGGFL4 (old)
+rotation_distance: 23.278379           # 11.06.24 - PG - https://ellis3dp.com/Print-Tuning-Guide/articles/extruder_calibration.html
 nozzle_diameter: 0.400
 filament_diameter: 1.750
 heater_pin: PB4                        # PG - UPDATED FOR SKR 3 EZ - USING HE1 (heating element 1) PIN ON BOARD FOR E1 (extruder e1)
@@ -340,7 +427,13 @@ max_temp: 130
 
 
 [fan]
-pin: PB7                               # PG - UPDATED FOR SKR 3 EZ - PIN IS MARKED "FAN0" ON THE BOARD (Which fan? hot end or case?)
+pin: PB7                               # PG - UPDATED FOR SKR 3 EZ - Pin marked "FAN0" on board. This is the part cooling fan.
+
+[heater_fan fan1]
+pin: PB6                               # PG - Added and enabled for SKR 3 EZ - Pin marked "FAN1" on board. Hotend fan (looking at hotend from front).
+
+#[heater_fan fan2]                     # PG - NOT USED. FOR SECOND EXTRUDER.
+#pin: PB5
 
 
 
@@ -354,112 +447,104 @@ max_z_accel: 100
 
 
 ########################################
-# EXP1 / EXP2 (LCD Display) Pins:
-########################################
-#
-# https://github.com/Klipper3d/klipper/blob/master/config/sample-lcd.cfg
-
-[board_pins]                                                                    # PG - This section needs to be here to make the BTT TFT35 screen work.
-aliases:
-    # EXP1 header
-    EXP1_1=PC5, EXP1_3=PB1, EXP1_5=PE9,  EXP1_7=PE11, EXP1_9=<GND>,             # PG - These pins match to the EXP1 header on the board
-    EXP1_2=PB0, EXP1_4=PE8, EXP1_6=PE10, EXP1_8=PE12, EXP1_10=<5V>,             # PG - These pins match to the EXP1 header on the board
-    # EXP2 header
-    EXP2_1=PA6, EXP2_3=PE7, EXP2_5=PB2, EXP2_7=PC4,   EXP2_9=<GND>,             # PG - These pins match to the EXP2 header on the board
-    EXP2_2=PA5, EXP2_4=PA4, EXP2_6=PA7, EXP2_8=<RST>, EXP2_10=<NC>              # PG - These pins match to the EXP2 header on the board (no comma at the end)
-
-# See the sample-lcd.cfg file for definitions of common LCD displays.
-
-
-
-######################################################################
-# 128x64 Full Graphic Creality CR10 / ENDER 3 stockdisplay
-######################################################################
-
-# (https://www.buydisplay.com/lcd-display-serial-graphic-display-128x64-st7920-white-on-blue)
-
-# This section is used for a Creality "12864" display with a single
-# ribbon cable between the display's EXP3 plug and the
-# micro-controller board's EXP1 connector.
-
-# Pinout on Stock Ender 3 Pro LCD      # PG - Added pin out section
-
-# +5v         GND                      ┌───┐
-# SID_PIN     CS_PIN                   |   |
-# SCLK_PIN    ENCODER 01               |  |
-# NOT USED    ENCODER 02               |   |
-# CLICK_PIN   BEEPER                   └───┘
-
-
-[display]
-lcd_type: st7920                       # PG - (https://www.waveshare.com/datasheet/LCD_en_PDF/ST7920.pdf)
-cs_pin: EXP1_7                         # PG - Maps to PE11 on EX1 on SKR 3 EZ
-sclk_pin: EXP1_6                       # PG - Maps to PE10 on EX1 on SKR 3 EZ
-sid_pin: EXP1_8                        # PG - Maps to PE12 on EX1 on SKR 3 EZ
-encoder_pins: ^EXP1_5, ^EXP1_3         # PG - Maps to PE9 & PB1 on EX1 on SKR 3 EZ
-click_pin: ^!EXP1_2                    # PG - Maps to PB0 on EX1 on SKR 3 EZ
-
-[output_pin beeper]
-pin: EXP1_1                            # PG - Maps to PC5 on EX1 on SKR 3 EZ
-
-
-
-# Stepper Driver Pin Configuration:
-
-########################################
 # TMC2209 configuration
 ########################################
 
 # https://www.klipper3d.org/TMC_Drivers.html
 # https://www.klipper3d.org/Config_Reference.html#tmc2209
+# https://docs.vorondesign.com/community/howto/120decibell/calculating_driver_current.html
+
+# Max calculated current of the TMC2209 driver is 1.2 amps. 67% of this is 0.804a amps.
 
 [tmc2209 stepper_x]
 uart_pin: PD5                          # PG - Maps to PD5 on SKR 3 EZ
-run_current: 0.800                     # PG - Unsure if this number is okay. Max calculated current of the TMC2209 driver is 1.2 amps. 67% of this is 0.804a amps.
+run_current: 0.500                     # PG - Changed from default of 0.800 to calculated 0.500
 #diag_pin:                             # PG - Only used for sensorless homing and was included in the template from BTT. Not needed in this set up.
+
+#stealthchop_threshold: 999999          # PG - Testing for volume on steppers during holds
 
 [tmc2209 stepper_y]
 uart_pin: PD0                          # PG - Maps to PD0 on SKR 3 EZ
-run_current: 0.800                     # PG - Unsure if this number is okay. Max calculated current of the TMC2209 driver is 1.2 amps. 67% of this is 0.804a amps.
+run_current: 0.500                     # PG - Changed from default of 0.800 to calculated 0.500
 #diag_pin:
+
+#stealthchop_threshold: 999999          # PG - Testing for volume on steppers during holds
 
 [tmc2209 stepper_z]
 uart_pin: PE1                          # PG - Maps to PE1 on SKR 3 EZ
-run_current: 0.800                     # PG - Unsure if this number is okay. Max calculated current of the TMC2209 driver is 1.2 amps. 67% of this is 0.804a amps.
+run_current: 0.500                     # PG - Changed from default of 0.800 to calculated 0.500
 #diag_pin:
+
+#stealthchop_threshold: 999999          # PG - Testing for volume on steppers during holds
 
 [tmc2209 stepper_z1]                   # PG - Renamed from "tmc2209_extruder" to "tmc2209 stepper_z1"
 uart_pin: PC6                          # PG - Maps to PC6 on SKR 3 EZ
-run_current: 0.800                     # PG - Unsure if this number is okay. Max calculated current of the TMC2209 driver is 1.2 amps. 67% of this is 0.804a amps.
+run_current: 0.500                     # PG - Changed from default of 0.800 to calculated 0.500
 #diag_pin:
+
+#stealthchop_threshold: 999999          # PG - Testing for volume on steppers during holds
 
 [tmc2209 extruder]
 uart_pin: PD12                         # PG - Maps to PD5 on SKR 3 EZ
-run_current: 0.800                     # PG - Unsure if this number is okay. Max calculated current of the TMC2209 driver is 1.2 amps. 67% of this is 0.804a amps.
+run_current: 0.900                     # PG - Changed from default of 0.800 to calculated 0.900
 #diag_pin:
 
-
+#stealthchop_threshold: 999999          # PG - Testing for volume on steppers during holds
 
 #*# <---------------------- SAVE_CONFIG ---------------------->
 #*# DO NOT EDIT THIS BLOCK OR BELOW. The contents are auto-generated.
 #*#
 #*# [extruder]
 #*# control = pid
-#*# pid_kp = 27.430
-#*# pid_ki = 1.793
-#*# pid_kd = 104.920
+#*# pid_kp = 26.074
+#*# pid_ki = 1.671
+#*# pid_kd = 101.687
 #*#
 #*# [heater_bed]
 #*# control = pid
-#*# pid_kp = 69.902
-#*# pid_ki = 1.363
-#*# pid_kd = 896.489
+#*# pid_kp = 66.121
+#*# pid_ki = 1.157
+#*# pid_kd = 944.711
 #*#
 #*# [bltouch]
-#*# z_offset = 0.615
+#*# z_offset = 0.529
 #*#
 #*# [input_shaper]
-#*# shaper_type_y = mzv
-#*# shaper_freq_y = 37.0
-#*# shaper_type_x = 2hump_ei
-#*# shaper_freq_x = 47.4
+#*# shaper_type_y = 2hump_ei
+#*# shaper_freq_y = 62.8
+#*# shaper_type_x = ei
+#*# shaper_freq_x = 62.6
+#*#
+#*# [bed_mesh default]
+#*# version = 1
+#*# points =
+#*# 	  0.033818, 0.127568, 0.100068
+#*# 	  0.002568, 0.077568, 0.011318
+#*# 	  0.170068, 0.096318, 0.083818
+#*# x_count = 3
+#*# y_count = 3
+#*# mesh_x_pps = 5
+#*# mesh_y_pps = 5
+#*# algo = lagrange
+#*# tension = 0.2
+#*# min_x = 12.0
+#*# max_x = 206.0
+#*# min_y = 23.0
+#*# max_y = 223.0
+#*#
+#*# [bed_mesh current]
+#*# version = 1
+#*# points =
+#*# 	  0.033818, 0.127568, 0.100068
+#*# 	  0.002568, 0.077568, 0.011318
+#*# 	  0.170068, 0.096318, 0.083818
+#*# x_count = 3
+#*# y_count = 3
+#*# mesh_x_pps = 5
+#*# mesh_y_pps = 5
+#*# algo = lagrange
+#*# tension = 0.2
+#*# min_x = 12.0
+#*# max_x = 206.0
+#*# min_y = 23.0
+#*# max_y = 223.0
