@@ -214,6 +214,8 @@ retry_tolerance: 0.025
 
 # Load/Unload Macros:
 #
+# Used on KlipperScreen as buttons in the extrude section & can be called manually from the console as LOAD_FILAMENT & UNLOAD_FILAMENT
+#
 # https://klipperscreen.readthedocs.io/en/latest/macros/#extrude-panel
 # https://chatgpt.com/c/67788c02-a31c-8006-85ea-c2cb5928993e
 #
@@ -236,9 +238,8 @@ gcode:
     G1 E-{retract_distance} F{speed}  # Retract 10mm
     RESTORE_GCODE_STATE NAME=load_state
     {% else %}
-    M117 Nozzle temperature too low. Heat to at least {min_temp}°C! # Display warning
+    M118 Nozzle temp too low. Heat to at least {min_temp}°C!  # Display warning on KlipperScreen LCD (M118 command)
     {% endif %}
-
 
 
 
@@ -254,16 +255,11 @@ gcode:
     SAVE_GCODE_STATE NAME=unload_state
     G91
     G92 E0
-    G1 E-{unload_distance} F{max_velocity} # Unload 80mm of filament
+    G1 E-{unload_distance} F{max_velocity}  # Unload 80mm of filament
     RESTORE_GCODE_STATE NAME=unload_state
     {% else %}
-    M117 Nozzle temperature too low. Heat to at least {min_temp}°C! # Display warning
+    M118 Nozzle temp too low. Heat to at least {min_temp}°C!  # Display warning on KlipperScreen LCD (M118 command)
     {% endif %}
-
-
-
-
-
 
 
 
