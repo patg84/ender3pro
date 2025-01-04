@@ -110,7 +110,7 @@ screw_thread: CW-M4                    # Adjustment screw under bed turns clockw
 
 # ADXL345 Input Shaper Section:
 #
-# # https://www.klipper3d.org/Measuring_Resonances.html
+# https://www.klipper3d.org/Measuring_Resonances.html
 #
 # Added by PG
 #  Make sure (sudo orangepi-config) has "param_spidev_spi_bus=1" in the "u-boot env" section and that SPI is not enabled in the hardware section!! This is the SPI1 bus as seen on orangepi gpio diagrams.
@@ -212,6 +212,11 @@ retry_tolerance: 0.025
 
 
 
+# Load/Unload Macros:
+#
+# https://klipperscreen.readthedocs.io/en/latest/macros/#extrude-panel
+# https://chatgpt.com/c/67788c02-a31c-8006-85ea-c2cb5928993e
+#
 [gcode_macro LOAD_FILAMENT]
 variable_load_distance:  75
 variable_extra_load:  5
