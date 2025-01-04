@@ -217,16 +217,23 @@ variable_load_distance:  75
 variable_extra_load:  5
 variable_retract_distance:  10
 gcode:
+    {% set min_temp = 190 %}
+    {% set nozzle_temp = printer.extruder.temperature|default(0) %}
+    {% if nozzle_temp >= min_temp %}
     {% set speed = params.SPEED|default(300) %}
     {% set max_velocity = printer.configfile.settings['extruder'].max_extrude_only_velocity * 60 %}
     SAVE_GCODE_STATE NAME=load_state
     G91
     G92 E0
-    G1 E{load_distance} F{max_velocity}                                          # fast-load 75mm
-    G4 P2000                                                                     # Pause for 2 seconds
-    G1 E{extra_load} F{speed}                                                    # Load 5mm more
-    G1 E-{retract_distance} F{speed}                                             # Retract 10mm
+    G1 E{load_distance} F{max_velocity}  # Fast-load 75mm
+    G4 P2000  # Pause for 2 seconds
+    G1 E{extra_load} F{speed}  # Load 5mm more
+    G1 E-{retract_distance} F{speed}  # Retract 10mm
     RESTORE_GCODE_STATE NAME=load_state
+    {% else %}
+    M117 Nozzle temperature too low. Heat to at least {min_temp}°C! # Display warning
+    {% endif %}
+
 
 
 
