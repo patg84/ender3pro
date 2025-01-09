@@ -1,4 +1,4 @@
-Last updated: 11.06.24
+Last updated: 01.09.25 - WIP
 
 # Pat's Modified Ender 3 Pro
 Klipper Configs & How-To Guides for Ender 3 Pro
@@ -7,7 +7,7 @@ Klipper Configs & How-To Guides for Ender 3 Pro
 
 # After Klipper config has been tuned...
 
-1. Edit printer.conf to liking...
+1. Edit printer.cfg to liking...
 2. Disable Stealth Chop for more accurate results in Z axis.
 
 
@@ -47,8 +47,21 @@ Klipper Configs & How-To Guides for Ender 3 Pro
 
 # To Do:
 
-1. Now I just need to figure out how cancel a print and have the Z axis raise up automatically. Klipper wants to reboot after a failed print and it cuts the power to the Z steppers which drops the hot nozzle into the part.
-2. Filament Sensor using original Ender Z stop switch.
+1. Tuning printer for accurate size prints.
+
+
+# 01.08.25 - Added sections in printer.cfg for:
+
+1. Load/unload filament macros
+2. Repurpose Ender 3 Pro Z Limit Switch into Filament Runout Sensor
+3. Filament change macro
+4. Pause/resume macros
+5. Park macro
+6. Cancel print macro
+7.  
+
+
+
 
 
 # OrcaSilcer Important Notes:
@@ -56,11 +69,6 @@ Klipper Configs & How-To Guides for Ender 3 Pro
 1. Download and install newest version from (https://github.com/SoftFever/OrcaSlicer/releases)
 2. Extract to folder and run.
 3. Saved profile data will load from here (%APPDATA%\OrcaSlicer) AKA (C:\Users\Pat\AppData\Roaming\OrcaSlicer)
-
-
-
-# Use this to tune Klipper:
-(https://ellis3dp.com/Print-Tuning-Guide/)
 
 
 
