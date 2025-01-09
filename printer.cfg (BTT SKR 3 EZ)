@@ -1,4 +1,4 @@
-# Last Updated: 01.08.25
+# Last Updated: 01.09.25
 
 #######################################################################################################################
 # Initial template taken from (https://github.com/Klipper3d/klipper/blob/master/config/generic-bigtreetech-skr-3.cfg)
@@ -22,7 +22,6 @@
 # Fine Tune E Steps                                             [extruder] section
 # X Run current of steppers
 # Need to permanently wire in ADXL345's with a toggle switch
-# Need to cancel print and have Z axis lift and nozzle move away to remove part from build plate.
 #
 #######################################################################################################################
 
@@ -30,35 +29,48 @@
 
 [include mainsail.cfg]
 
+##############################################
+# Include BTT SKR 3 EZ Controller Board:
+##############################################
+
 # As per YouTube user "Joe Prints" use by-path vs by-id
+
 # Added by PG
-#
-# MCU = Microcontroller Unit. In this case it's the BTT SKR 3 EZ. It's connected via USB to the Orange Pi. The /dev location is on the Orange Pi.
-#
-[mcu]
+
+[mcu]                                                                    # Microcontroller Unit aka the BTT SKR 3 EZ connected via USB to the OPZ3.
 serial: /dev/serial/by-path/platform-5200400.usb-usb-0:1:1.0             # Compile firmware.bin then run "ls /dev/serial/by-path/*" to update this line
 restart_method: command
 
 
 
-# Added by PG - Shows temp of Orange Pi in Mainsail interface.
-#
+
+##############################################
+# Shows temp of Orange Pi in the Mainsail GUI:
+##############################################
+
 [temperature_sensor orange_pi]
 sensor_type: temperature_host
 
 
 
-# Added automatically iirc. It's where the uploaded GCodes are saved after uploading from the Mainsail interface.
-#
+
+##############################################
+# Uploaded G Code is stored here on the OPZ3:
+##############################################
+
 [virtual_sdcard]
-path: /home/orangepi/printer_data/gcodes
-on_error_gcode: CANCEL_PRINT
+path: /home/orangepi/printer_data/gcodes                                # Location on OPZ3
+on_error_gcode: CANCEL_PRINT                                            # If error arrises call built-in CANCEL_PRINT macro to stop print.
 
 
+
+
+##############################################
+# Enables BL-Touch/CR-Touch (we have this one):
+##############################################
 
 # Added by PG - https://www.youtube.com/watch?v=5vmjBXvY6BA
-# Enables BL-Touch/CR-Touch (we have this one)
-#
+
 [bltouch]
 sensor_pin: ^PC13                      # PG - ZStop Signal (OUT). Added "^" since most BLTouch devices require a pull up on the sensor pin and it wouldn't work otherwise.
 control_pin: PE5                       # PG - Servo Signal (CTRL).
@@ -70,9 +82,14 @@ speed: 5                               # PG - 10.29.24 - Changed from 2 to defau
 #z_offset: 0.0                         # PG - This is commented out after it's set automatically. See EOF (End of File).
 
 
+
+
+##############################################
+# After the X and Y endstops are triggered this is where the BLTouch will autohome to:
+##############################################
+
 # Added by PG - https://www.youtube.com/watch?v=5vmjBXvY6BA
-# After the X and Y endstops are triggered this is where the BLTouch will autohome to.
-#
+
 [safe_z_home]
 home_xy_position: 125,125              # Change coordinates to center of bed
 speed: 50                              # How fast are we moving to the home position?
@@ -81,18 +98,22 @@ z_hop_speed: 5                         # How fast are we moving the Z axis up?
 
 
 
+
+##############################################
+# Screws Tilt Adjust - Performs automatic calculations on how to manually adjust the bed based off the front left adjustment screw:
+##############################################
+
 # Added by PG as per Leo
-# Screws Tilt Adjust - Performs automatic calculations on how to manually adjust the bed based off the front left adjustment screw.
-#
+
 # https://www.youtube.com/watch?v=APAbl5PGEh0&t=345s
 # https://www.klipper3d.org/Manual_Level.html
-#
+
 #   4 <------ 3
 #   |    R    ↑
 #   | L     R |
 #   ↓    F    |
 #   1 ------> 2
-#
+
 [screws_tilt_adjust]
 screw1: 76.50, 38                      # X and Y location of nozzle directly over left front screw
 screw1_name: front left screw
@@ -108,30 +129,31 @@ screw_thread: CW-M4                    # Adjustment screw under bed turns clockw
 
 
 
+
+##############################################
 # ADXL345 Input Shaper Section:
-#
+##############################################
+
+# https://github.com/patg84/ender3pro/blob/main/Build_ADXL345_linux_process.md
+
 # https://www.klipper3d.org/Measuring_Resonances.html
-#
-# Added by PG
-#  Make sure (sudo orangepi-config) has "param_spidev_spi_bus=1" in the "u-boot env" section and that SPI is not enabled in the hardware section!! This is the SPI1 bus as seen on orangepi gpio diagrams.
-#
+
+# Make sure (sudo orangepi-config) has "param_spidev_spi_bus=1" in the "u-boot env" section and that SPI is not enabled in the hardware section!! This is the SPI1 bus as seen on orangepi gpio diagrams.
+
 # *** Run automatic or manual calibration but not both! ***
-# 
+ 
 # Find the MCU device by path or id (path is preferred):
-# 
 #    ls /dev/serial/by-path/*
 #    ls /dev/serial/by-id/*
-#
+
 # Automatic calibration of each axis (https://www.klipper3d.org/Measuring_Resonances.html#input-shaper-auto-calibration):
-#
 #    1. Run "ACCELEROMETER_QUERY" to get current ADXL345 data and verify ADXL345 chip is connected and working correctly.
 #    2. Run "SHAPER_CALIBRATE AXIS=X" to run test
 #    3. Run "SAVE_CONFIG" to save data to printer.cfg
 #    4. Run "SHAPER_CALIBRATE AXIS=Y" to run test
 #    5. Run "SAVE_CONFIG" to save data to printer.cfg
-#
+
 # Manual calibration of each axis (https://www.klipper3d.org/Measuring_Resonances.html#testing-custom-axes):
-#
 #    1. Run "ACCELEROMETER_QUERY" to get current ADXL345 data and verify ADXL345 chip is connected and working correctly.
 #    2. Run "TEST_RESONANCES AXIS=X' and "TEST_RESONANCES AXIS=Y" to run test and add CSV data to "/tmp" on the Pi. Once data is aquired for both axes run the following command to get recommended settings and PNGs of graphs:
 #    3. ~/klipper/scripts/calibrate_shaper.py /tmp/resonances_x_*.csv -o /tmp/shaper_calibrate_x.png
@@ -153,13 +175,12 @@ probe_points:                          # As per Aubey in Discord, this is where 
 
 
 
-
-
-
+##############################################
 # Bed Mesh Probe Points Section:
-#
+##############################################
+
 # Added by PG - https://youtu.be/5vmjBXvY6BA?si=Le7Bqf7OGQHqSTqf&t=678
-#
+
 [bed_mesh]
 speed: 200                             # Speed at which to move between probing points
 horizontal_move_z: 5                   # How high does probe move after last probe before moving to next point?
@@ -174,8 +195,10 @@ fade_end: 10                           # Height in mm when probe mesh terminates
 
 
 
-# This is what aligns both Z steppers to the build plate
-#
+##############################################
+# Aligns both left and right Z steppers to the build plate:
+##############################################
+
 [z_tilt]
 z_positions:
     -29.5,94
@@ -215,57 +238,60 @@ retry_tolerance: 0.025
 
 
 
+##############################################
 # Load/Unload Macros:
-#
+##############################################
+
 # Used on KlipperScreen as buttons in the extrude section & can be called manually from the console as LOAD_FILAMENT & UNLOAD_FILAMENT
 # Load filament into the teflon tube and when it hits the extruder gears press the Load Filament button on the HDMI screne
-#
+
 # https://klipperscreen.readthedocs.io/en/latest/macros/#extrude-panel
 # https://chatgpt.com/c/67788c02-a31c-8006-85ea-c2cb5928993e
 
-
 # Load filament macro
 [gcode_macro LOAD_FILAMENT]
-variable_load_distance:  70            # Need to fine tune more on a single square patch. Force in 70mm of filament.
-variable_extra_load:  5                # Slowly load in 5 more mm of filament. Should bring the filament right to the nozzle tip.
-variable_retract_distance:  0          # Dont pull any filament back. If it did it would do it slowly.
+variable_load_distance:  70            # Need to fine tune more on a single square patch. Fast load 70mm of filament.
+variable_extra_load:  5                # Slowly load in 5 more mm of filament. Should bring the filament right to the nozzle tip without extra ooze.
+variable_retract_distance:  0          # Dont pull any filament back. This operation moves slowly.
 gcode:
-    {% set min_temp = 189 %}
-    {% set nozzle_temp = printer.extruder.temperature|default(0) %}
-    {% if nozzle_temp >= min_temp %}
-    {% set speed = params.SPEED|default(150) %}
-    {% set max_velocity = printer.configfile.settings['extruder'].max_extrude_only_velocity * 60 %}
-    SAVE_GCODE_STATE NAME=load_state
-    G91
-    G92 E0
-    G1 E{load_distance} F{max_velocity}  # Fast-load 75mm
-    G4 P2000  # Pause for 2 seconds
-    G1 E{extra_load} F{speed}  # Load 5mm more
-    G1 E-{retract_distance} F{speed}  # Retract 10mm
-    RESTORE_GCODE_STATE NAME=load_state
-    {% else %}
-    M118 Nozzle temp too low. Heat to at least {min_temp}°C!  # Display warning on KlipperScreen LCD (M118 command)
-    {% endif %}
+    {% set min_temp = 189 %}                                                                            # If this is set to 190 and the temp dips below that, it'll fail to run.
+    {% set nozzle_temp = printer.extruder.temperature|default(0) %}                                     # Get current nozzle temp, if temp is not available, default to 0. Store result in variable "nozzle_temp".
+    {% if nozzle_temp >= min_temp %}                                                                    # Check if "nozzle_temp" is greater than or equal to "min_temp".
+    {% set speed = params.SPEED|default(150) %}                                                         # Get "SPEED" parameter or default to 150. Store in "speed".
+    {% set max_velocity = printer.configfile.settings['extruder'].max_extrude_only_velocity * 60 %}     # Get max extrude-only velocity from config, convert to mm/min. Store in "max_velocity".
+    SAVE_GCODE_STATE NAME=load_state                                                                    # Save the current G-code state with the name "load_state".
+    G91                                                                                                 # Set the printer to relative positioning mode.
+    G92 E0                                                                                              # Reset the extruder position to 0.
+    G1 E{load_distance} F{max_velocity}                                                                 # Fast-load 75mm
+    G4 P2000                                                                                            # Pause for 2000 milliseconds (2 seconds).
+    G1 E{extra_load} F{speed}                                                                           # Load 5mm more
+    G1 E-{retract_distance} F{speed}                                                                    # Retract 10mm
+    RESTORE_GCODE_STATE NAME=load_state                                                                 # Restore the G-code state saved as "load_state".
+    {% else %}                                                                                          # Begin the "else" block, executed if the previous "if" condition is not true.
+    M118 Nozzle temp too low. Heat to at least {min_temp}°C!                                            # Display warning on KlipperScreen LCD (M118 command)
+    {% endif %}                                                                                         # End the "if" block.
+
 
 
 
 # Unload filament macro
 [gcode_macro UNLOAD_FILAMENT]
-variable_unload_distance: 100
+variable_unload_distance: 100          # Fast unload 100mm of filament.
 gcode:
-    {% set min_temp = 189 %}
-    {% set nozzle_temp = printer.extruder.temperature|default(0) %}
-    {% if nozzle_temp >= min_temp %}
-    {% set speed = params.SPEED|default(300) %}
-    {% set max_velocity = printer.configfile.settings['extruder'].max_extrude_only_velocity * 60 %}
-    SAVE_GCODE_STATE NAME=unload_state
-    G91
-    G92 E0
-    G1 E-{unload_distance} F{max_velocity}  # Unload 80mm of filament
-    RESTORE_GCODE_STATE NAME=unload_state
-    {% else %}
-    M118 Nozzle temp too low. Heat to at least {min_temp}°C!  # Display warning on KlipperScreen LCD (M118 command)
-    {% endif %}
+    {% set min_temp = 189 %}                                                                            # If this is set to 190 and the temp dips below that, it'll fail to run.
+    {% set nozzle_temp = printer.extruder.temperature|default(0) %}                                     # Get current nozzle temp, if temp is not available, default to 0. Store result in variable "nozzle_temp".
+    {% if nozzle_temp >= min_temp %}                                                                    # Check if "nozzle_temp" is greater than or equal to "min_temp".
+    {% set speed = params.SPEED|default(300) %}                                                         # Get "SPEED" parameter or default to 300. Store in "speed".
+    {% set max_velocity = printer.configfile.settings['extruder'].max_extrude_only_velocity * 60 %}     # Get max extrude-only velocity from config, convert to mm/min. Store in "max_velocity".
+    SAVE_GCODE_STATE NAME=unload_state                                                                  # Save the current G-code state with the name "unload_state".
+    G91                                                                                                 # Set the printer to relative positioning mode.
+    G92 E0                                                                                              # Reset the extruder position to 0.
+    G1 E-{unload_distance} F{max_velocity}                                                              # Fast unload 80mm of filament
+    RESTORE_GCODE_STATE NAME=unload_state                                                               # Restore the G-code state saved as "unload_state".
+    {% else %}                                                                                          # Begin the "else" block, executed if the previous "if" condition is not true.
+    M118 Nozzle temp too low. Heat to at least {min_temp}°C!                                            # Display warning on KlipperScreen LCD (M118 command)
+    {% endif %}                                                                                         # End the "if" block.
+
 
 
 
@@ -275,112 +301,92 @@ gcode:
 
 # Sensor pin for BTT SKR 3 EZ
 # https://github.com/bigtreetech/SKR-3/blob/master/Hardware%20(SKR%203%20EZ)/BIGTREETECH%20SKR%203%20EZ%20V1.0-PIN.pdf
-#
+
 # Using E1DET (extruder 1). E0 is linked to the second Z stepper.
-#
+
 [filament_switch_sensor filament_sensor]
-switch_pin: !PA0                          # This is the pin on the BTT SKR3 EZ board leading to one leg of the runout switch
-pause_on_runout: True                     # Automatically pause the print on runout
+switch_pin: !PA0                                 # This is the pin on the BTT SKR3 EZ board leading to one leg of the runout switch
+pause_on_runout: True                            # Automatically pause the print on runout
 insert_gcode:
-    M118 Insert Detected
+    M118 Insert Detected                         # When filament is inserted display this msg on the LCD screen
 runout_gcode:
-    M118 Runout Detected
-    
-    
-    
-    
-# Filament change
+    M118 Runout Detected                         # When a runout is detected display this msg on the LCD screen
+
+
+
+
+##############################################
+# Custom Macros
+##############################################
+
 [gcode_macro M600]
+description: Change filament                     # Macro description
 gcode:
-    PAUSE_MACRO
-    UNLOAD_FILAMENT
+    PAUSE_MACRO                                  # Call pause macro
+    UNLOAD_FILAMENT                              # Call unload filament macro
+
+
+
 
 [gcode_macro PAUSE_MACRO]
+description: Pauses print                        # Macro description
 gcode:
-    PAUSE
-    RESPOND TYPE=command MSG=action:paused
-    PARK_MACRO
-    SET_IDLE_TIMEOUT TIMEOUT=3600
+    PAUSE                                        # Pauses print job using built in command
+    RESPOND TYPE=command MSG=action:paused       # Inform user print is pausing
+    PARK_MACRO                                   # Call park marco and move extruder to back right corner
+    SET_IDLE_TIMEOUT TIMEOUT=3600                # (seconds) to wait before timing out macro. 3600 = 1 hour
+
+
+
 
 [gcode_macro RESUME_MACRO]
+description: Resumes print                       # Macro description
 gcode:
-    SET_IDLE_TIMEOUT TIMEOUT=600
-    RESUME
-    RESPOND TYPE=command MSG=action:resumed
+    SET_IDLE_TIMEOUT TIMEOUT=600                 # (seconds) to wait before timing out macro. 600 = 10 minutes
+    RESUME                                       # Resumes print job using built in command
+    RESPOND TYPE=command MSG=action:resumed      # Inform user print is resuming
+
+
+
 
 [gcode_macro PARK_MACRO]
+description: Move extruder to back right corner  # Macro description
 gcode:
-    SAVE_GCODE_STATE NAME=PARK_MACRO_state
-    G91                     ; relative positioning
-    G1 E-2 F1000            ; retract filament
-    G1 Z10                  ; lift Z slightly
-    G90                     ; absolute positioning
-    # Use default values if parameters are not provided
-    {% set X = params.X|default(251)|float %}
-    {% set Y = params.Y|default(225)|float %}
-    {% set Z = params.Z|default(50)|float %}
-    G1 X{X} Y{Y} Z{Z} F3000 ; park the head
-    RESTORE_GCODE_STATE NAME=PARK_MACRO_state
-    
+    SAVE_GCODE_STATE NAME=PARK_MACRO_state       # Save current G code state with name "PARK_MACRO_state" to be called later
+    G91                                          # Relative positioning
+    G1 E-2 F1000                                 # Retract filament by 2mm at a feedrate of 1000 mm/min
+    G1 Z10                                       # Raise Z by 10 mm
+    G90                                          # Absolute positioning starting from 0, 0, 0
+    {% set X = params.X|default(251)|float %}    # Move X axis right to 251 mm
+    {% set Y = params.Y|default(225)|float %}    # Move Y axis forward to 225 mm
+    {% set Z = params.Z|default(50)|float %}     # Move Z axis up by 50 mm
+    G1 X{X} Y{Y} Z{Z} F3000                      # Move the extruder to the back right corner at a speed of 3000 mm/min (60 mm/s) using the above X, Y, and Z values.
+    RESTORE_GCODE_STATE NAME=PARK_MACRO_state    # Restore G code state named "PARK_MACRO_state" from above
 
 
-    
+
+
 [gcode_macro CANCEL_PRINT]
-description: Cancel the actual running print
-rename_existing: CANCEL_PRINT_BASE
+description: Cancel the running print            # Macro description
+rename_existing: CANCEL_PRINT_BASE               # Renames built-in macro CANCEL_PRINT_BASE to CANCEL_PRINT
 gcode:
-    TURN_OFF_HEATERS
-    CANCEL_PRINT_BASE
-    G0 Z50 F3600 ; move nozzle up
-    ;G0 X251 Y225 F20000 ; move nozzle to remove stringing
-    M107 ; turn off fan
-    G90 ; absolute positioning
-    G0 X251 Y225 F3600 ; park nozzle at rear
-    BED_MESH_CLEAR
+    TURN_OFF_HEATERS                             # Turn off hot end and bed heating elements
+    CANCEL_PRINT_BASE                            # Calls the original CANCEL_PRINT_BASE macro
+    G0 Z50 F3600                                 # Move Z axis up by 50 mm at a feed rate of 3600 mm/min (60 mm/s)
+    M107                                         # Turn off fan
+    G90                                          # Absolute positioning starting from 0, 0, 0
+    G0 X251 Y225 F3600                           # Move hot end to back right corner
+    BED_MESH_CLEAR                               # Clear the current bed mesh
 
 
 
 
+##############################################
+# Pat's Ender 3 Custom Start G-code (MicroSwiss Direct Drive):
+##############################################
 
+# chat.openai.com - Start Code
 
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Pat's Ender 3 Custom Start G-code (MicroSwiss Direct Drive)
-# chat.openai.com - Start Code 
-#
 [gcode_macro START_PRINT]
 variable_bed_temp: 60                  # Sets default value to 60°C. Can be changed with gcode.
 variable_extruder_temp: 220            # Sets default value to 220°C. Can be changed with gcode.
@@ -424,8 +430,10 @@ gcode:
 
 
 
-# Pat's Ender 3 Custom End G-code (MicroSwiss Direct Drive)
-#
+##############################################
+# Pat's Ender 3 Custom End G-code (MicroSwiss Direct Drive):
+##############################################
+
 [gcode_macro END_PRINT]
 gcode:
     G91                                # Relative positioning
@@ -448,15 +456,16 @@ gcode:
 
 
 
-#######################################################################################################################
+##############################################
 # BTT SKR 3 EZ Stepper Motor Pin Mappings:
-#
+##############################################
+
 # This section taken from (https://github.com/Klipper3d/klipper/blob/master/config/generic-bigtreetech-skr-3.cfg) and
 # matched with (https://github.com/bigtreetech/SKR-3/blob/master/Hardware%20(SKR%203%20EZ)/BIGTREETECH%20SKR%203%20EZ%20V1.0-PIN.pdf)
-#
+
 [stepper_x]
 step_pin: PD4                          # PG - UPDATED FOR SKR 3 EZ
-dir_pin: !PD3                           # PG - UPDATED FOR SKR 3 EZ
+dir_pin: !PD3                          # PG - UPDATED FOR SKR 3 EZ
 enable_pin: !PD6                       # PG - UPDATED FOR SKR 3 EZ
 microsteps: 16
 rotation_distance: 40
@@ -483,13 +492,12 @@ step_pin: PE2                          # PG - UPDATED FOR SKR 3 EZ
 dir_pin: PE3                           # PG - UPDATED FOR SKR 3 EZ & UNINVERTED
 enable_pin: !PE0                       # PG - UPDATED FOR SKR 3 EZ
 microsteps: 16
-rotation_distance: 8                  # PG - UPDATED FOR SKR 3 EZ, CHANGED FROM 8 TO 40 AS PER TEMPLATE????
+rotation_distance: 8                   # PG - UPDATED FOR SKR 3 EZ, CHANGED FROM 8 TO 40 AS PER TEMPLATE????
 #endstop_pin: ^PC0                     # PG - UPDATED FOR SKR 3 EZ - PG - Disabling default endstop pin in lieu of BLTouch
 endstop_pin: probe:z_virtual_endstop   # Added by PG to enable BLTouch
 #position_endstop: 0.0                 # PG - Disabling for BLTouch
-position_max: 250
+position_max: 250                      # Max Z height
 position_min: -6.00                    # Added by PG - https://www.youtube.com/watch?v=5vmjBXvY6BA (9:00)
-
 
 # PG - The following lines are not needed since we already referenced it once in [stepper_z]:
 #
@@ -501,11 +509,10 @@ step_pin: PD15                         # PG - UPDATED FOR SKR 3 EZ
 dir_pin: PD14                          # PG - UPDATED FOR SKR 3 EZ & UNINVERTED
 enable_pin: !PC7                       # PG - UPDATED FOR SKR 3 EZ (UNSURE OF INVERTED STATUS, COPYING FROM FIRST Z MOTOR)
 microsteps: 16
-rotation_distance: 8                  # PG - UPDATED FOR SKR 3 EZ - CHANGED FROM 8 TO 40 TO MATCH "stepper_z"
+rotation_distance: 8                   # PG - UPDATED FOR SKR 3 EZ - CHANGED FROM 8 TO 40 TO MATCH "stepper_z"
 #endstop_pin:                          # PG - UPDATED FOR SKR 3 EZ (erased previous value since no new pin exists) - PG - Disabling default endstop pin in lieu of BLTouch
 endstop_pin: probe:z_virtual_endstop   # Added by PG to enable BLTouch
 #position_endstop: 0.0                 # PG - Disabling for BLTouch
-
 
 # https://3dprinting.stackexchange.com/questions/20797/why-are-the-options-for-pid-control-commented-out-in-klipper-config-file
 # Klipper automatically disabled the below PID values and automatically put the correct calibrated ones at the end of this file in a special section.
@@ -514,13 +521,13 @@ endstop_pin: probe:z_virtual_endstop   # Added by PG to enable BLTouch
 pressure_advance: 0.0370               # 06.16.24 - PG - Set using Ellis's PA Tool (https://ellis3dp.com/Print-Tuning-Guide/articles/pressure_linear_advance/pattern_method.html)
 max_extrude_only_distance: 101.0
 step_pin: PD11                         # PG - UPDATED FOR SKR 3 EZ
-dir_pin: !PD10                          # PG - UPDATED FOR SKR 3 EZ
+dir_pin: !PD10                         # PG - UPDATED FOR SKR 3 EZ
 enable_pin: !PD13                      # PG - UPDATED FOR SKR 3 EZ
 microsteps: 16
 #rotation_distance: 23.0479            # https://www.youtube.com/watch?v=5Suy_MGGFL4 (old)
 rotation_distance: 23.278379           # 11.06.24 - PG - https://ellis3dp.com/Print-Tuning-Guide/articles/extruder_calibration.html
-nozzle_diameter: 0.400
-filament_diameter: 1.750
+nozzle_diameter: 0.400                 # Nozzle diameter in mm
+filament_diameter: 1.750               # Filament diameter in mm
 heater_pin: PB4                        # PG - UPDATED FOR SKR 3 EZ - USING HE1 (heating element 1) PIN ON BOARD FOR E1 (extruder e1)
 sensor_type: EPCOS 100K B57560G104F    # I have another 4 or 5 of these, new, in the toolbox
 sensor_pin: PA3                        # PG - UPDATED FOR SKR 3 EZ - USING TH1 (thermistor 1) PIN ON BOARD FOR E1 (extruder e1)
@@ -528,9 +535,8 @@ sensor_pin: PA3                        # PG - UPDATED FOR SKR 3 EZ - USING TH1 (
 #pid_Kp: 21.527
 #pid_Ki: 1.063
 #pid_Kd: 108.982
-min_temp: 0
-max_temp: 250
-
+min_temp: 0                            # Minimum extruder temp
+max_temp: 250                          # Maximum extruder temp
 
 # https://3dprinting.stackexchange.com/questions/20797/why-are-the-options-for-pid-control-commented-out-in-klipper-config-file
 # Klipper automatically disabled the below PID values and automatically put the correct calibrated ones at the end of this file in a special section.
@@ -543,10 +549,8 @@ sensor_pin: PA1                        # PG - UPDATED FOR SKR 3 EZ - PIN IS MARK
 #pid_Kp: 54.027
 #pid_Ki: 0.770
 #pid_Kd: 948.182
-min_temp: 0
-max_temp: 130
-
-
+min_temp: 0                            # Minimum bed temp
+max_temp: 130                          # Maximum bed temp
 
 [fan]
 pin: PB7                               # PG - UPDATED FOR SKR 3 EZ - Pin marked "FAN0" on board. This is the part cooling fan.
@@ -554,10 +558,8 @@ pin: PB7                               # PG - UPDATED FOR SKR 3 EZ - Pin marked 
 [heater_fan fan1]
 pin: PB6                               # PG - Added and enabled for SKR 3 EZ - Pin marked "FAN1" on board. Hotend fan (looking at hotend from front).
 
-#[heater_fan fan2]                     # PG - NOT USED. FOR SECOND EXTRUDER.
+#[heater_fan fan2]                     # PG - NOT USED. MAPPED FOR SECOND EXTRUDER.
 #pin: PB5
-
-
 
 [printer]
 kinematics: cartesian
@@ -568,50 +570,58 @@ max_z_accel: 100
 
 
 
-########################################
-# TMC2209 configuration
-########################################
+
+##############################################
+# TMC2209 Stepper Motor Driver Configuration:
+##############################################
+
+# https://github.com/patg84/ender3pro/blob/main/Creality-Ender-3-Pro-Stepper-Motor-Data.txt
 
 # https://www.klipper3d.org/TMC_Drivers.html
 # https://www.klipper3d.org/Config_Reference.html#tmc2209
 # https://docs.vorondesign.com/community/howto/120decibell/calculating_driver_current.html
 
-# Max calculated current of the TMC2209 driver is 1.2 amps. 67% of this is 0.804a amps.
+# Max calculated current of the TMC2209 driver is 1.2 amps as per the Voron calc. 67% of this is 0.804a amps.
+
+# Stock Ender 3 Pro Steppers Motors:
+
+# BJ42D15-26V09 - 0.84 * 0.707 = 0.59388 = (Rounded down the to nearest 0.1) = 0.5 amps           # X, Y, and Z motors
+# BJ42D22-23V01 - 1.4 * 0.707  = 0.9898  = (Rounded down the to nearest 0.1) = 0.9 amps           # Extruder motor
 
 [tmc2209 stepper_x]
-uart_pin: PD5                          # PG - Maps to PD5 on SKR 3 EZ
+uart_pin: PD5                          # PG - Maps to pin PD5 on SKR 3 EZ
 run_current: 0.500                     # PG - Changed from default of 0.800 to calculated 0.500
 #diag_pin:                             # PG - Only used for sensorless homing and was included in the template from BTT. Not needed in this set up.
 
-#stealthchop_threshold: 999999          # PG - Testing for volume on steppers during holds
+#stealthchop_threshold: 999999         # PG - Disabled for increased accuracy in motor hold position, noisy.
 
 [tmc2209 stepper_y]
-uart_pin: PD0                          # PG - Maps to PD0 on SKR 3 EZ
+uart_pin: PD0                          # PG - Maps to pin PD0 on SKR 3 EZ
 run_current: 0.500                     # PG - Changed from default of 0.800 to calculated 0.500
 #diag_pin:
 
-#stealthchop_threshold: 999999          # PG - Testing for volume on steppers during holds
+#stealthchop_threshold: 999999         # PG - Disabled for increased accuracy in motor hold position, noisy.
 
-[tmc2209 stepper_z]
-uart_pin: PE1                          # PG - Maps to PE1 on SKR 3 EZ
+[tmc2209 stepper_z]                    # Pretty sure this is the left Z motor
+uart_pin: PE1                          # PG - Maps to pin PE1 on SKR 3 EZ
 run_current: 0.500                     # PG - Changed from default of 0.800 to calculated 0.500
 #diag_pin:
 
-#stealthchop_threshold: 999999          # PG - Testing for volume on steppers during holds
+#stealthchop_threshold: 999999         # PG - Disabled for increased accuracy in motor hold position, noisy.
 
-[tmc2209 stepper_z1]                   # PG - Renamed from "tmc2209_extruder" to "tmc2209 stepper_z1"
-uart_pin: PC6                          # PG - Maps to PC6 on SKR 3 EZ
+[tmc2209 stepper_z1]                   # PG - Renamed from "tmc2209_extruder" to "tmc2209 stepper_z1". Pretty sure this is the right Z motor.
+uart_pin: PC6                          # PG - Maps to pin PC6 on SKR 3 EZ
 run_current: 0.500                     # PG - Changed from default of 0.800 to calculated 0.500
 #diag_pin:
 
-#stealthchop_threshold: 999999          # PG - Testing for volume on steppers during holds
+#stealthchop_threshold: 999999         # PG - Disabled for increased accuracy in motor hold position, noisy.
 
 [tmc2209 extruder]
-uart_pin: PD12                         # PG - Maps to PD5 on SKR 3 EZ
+uart_pin: PD12                         # PG - Maps to pin PD5 on SKR 3 EZ
 run_current: 0.900                     # PG - Changed from default of 0.800 to calculated 0.900
 #diag_pin:
 
-#stealthchop_threshold: 999999          # PG - Testing for volume on steppers during holds
+#stealthchop_threshold: 999999         # PG - Disabled for increased accuracy in motor hold position, noisy.
 
 #*# <---------------------- SAVE_CONFIG ---------------------->
 #*# DO NOT EDIT THIS BLOCK OR BELOW. The contents are auto-generated.
