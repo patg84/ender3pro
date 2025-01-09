@@ -199,6 +199,8 @@ fade_end: 10                           # Height in mm when probe mesh terminates
 # Aligns both left and right Z steppers to the build plate:
 ##############################################
 
+# https://github.com/patg84/ender3pro/blob/main/Z_TILT_ADJUST_How_To_Set
+
 [z_tilt]
 z_positions:
     -29.5,94
