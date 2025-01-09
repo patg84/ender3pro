@@ -28,8 +28,8 @@ Peak Current * 0.707 = Maximum Run Current in RMS (Root Mean Squared)
 
 Round down to the nearest 0.1
 
-BJ42D15-26V09 - 0.84 * 0.707 = 0.59388 = (Rounded down the to nearest 0.1) = 0.5 amps           # X, Y, and Z axes.
-BJ42D22-23V01 - 1.4 * 0.707  = 0.9898  = (Rounded down the to nearest 0.1) = 0.9 amps           # Extruder
+BJ42D15-26V09 - 0.84 * 0.707 = 0.59388 = (Rounded down the to nearest 0.1) = 0.5 amps           # X, Y, and Z motors
+BJ42D22-23V01 - 1.4 * 0.707  = 0.9898  = (Rounded down the to nearest 0.1) = 0.9 amps           # Extruder motor
 
 
 
