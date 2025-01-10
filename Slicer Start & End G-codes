@@ -1,0 +1,60 @@
+Last updated: 01.10.25
+
+Bed size:
+x=235.0
+y=235.0
+z=250.0
+
+
+Cura v5.9.0:
+============
+
+Start G-code:
+
+SET_GCODE_VARIABLE MACRO=START_PRINT VARIABLE=bed_temp VALUE={material_bed_temperature_layer_0}
+SET_GCODE_VARIABLE MACRO=START_PRINT VARIABLE=extruder_temp VALUE={material_print_temperature_layer_0}
+START_PRINT
+
+
+
+End G-code:
+
+END_PRINT
+
+=================================================
+
+
+Orca v2.2.0:
+============
+
+Start G-code:
+
+M104 S0 ; Set a new target hot end temperature and continue without waiting. The firmware will continue to try to reach and hold the temperature in the background.
+M140 S0 ; Set a new target temperature for the heated bed and continue without waiting. The firmware manages heating in the background.
+START_PRINT EXTRUDER_TEMP=[first_layer_temperature] BED_TEMP=[first_layer_bed_temperature]
+
+
+
+End G-code:
+
+END_PRINT
+
+
+
+Before layer change G-code:
+
+;BEFORE_LAYER_CHANGE
+;[layer_z]
+G92 E0
+
+
+
+Change filament G-code:
+
+M600
+
+
+
+Pause G-code:
+
+M25
