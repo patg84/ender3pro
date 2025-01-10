@@ -321,6 +321,8 @@ runout_gcode:
 # Custom Macros
 ##############################################
 
+# https://github.com/Klipper3d/klipper/issues/2412
+
 [gcode_macro M600]
 description: Change filament                     # Macro description
 gcode:
