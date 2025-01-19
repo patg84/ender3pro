@@ -37,9 +37,9 @@ Klipper Configs & How-To Guides for Ender 3 Pro
 23. Adjust Z height on the fly
 
 24. Stringing control - Chazmeister's profile:
-    https://youtu.be/_QRb54zVPfQ?si=-6Fig9GtGNzSlDhk
-    https://goo.gl/vnsQWx
-    https://teachingtechyt.github.io/files/retractiontestv2.stl
+    - https://youtu.be/_QRb54zVPfQ?si=-6Fig9GtGNzSlDhk
+    - https://goo.gl/vnsQWx
+    - https://teachingtechyt.github.io/files/retractiontestv2.stl
 
 
 
