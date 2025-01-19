@@ -71,7 +71,8 @@ Klipper Configs & How-To Guides for Ender 3 Pro
 3. Saved profile data will load from here (%APPDATA%\OrcaSlicer) AKA (C:\Users\Pat\AppData\Roaming\OrcaSlicer)
 
 
-
+# Ues this to export Cura profiles to CSV files for comparison:
+https://support.makerbot.com/s/article/1667417418619
 
 
 
