@@ -14,10 +14,10 @@ Klipper Configs & How-To Guides for Ender 3 Pro
 
 # Initial Calibration Order After Changing Parts:
 
-1. Heat bed to 60°C for PETG (Garolite surface) (nozzle will be at 190°C, for my reference)
-2. Move > Home > Home All
-3. Disable motors and pull bed forward
-4. Loosen thumbwheels until they free spin > spin counterclockwise until they stop > align blue tape to front > screw clockwise X turns > back off 1 turn or if using springs, screw down thumb wheels until they stop, then back off one turn.
+1. Move > Home > Home All (G28)
+2. Disable motors and pull bed forward
+3. With the bed cold, loosen all bed thumbwheels until they free spin > spin counterclockwise until they stop > align blue tape to front > screw clockwise X turns > back off 1 turn or if using springs, screw down thumb wheels until they stop, then back off one turn.
+4. Heat bed to 60°C for PETG (Garolite surface or PEI) (nozzle will be at 190°C, for my reference)
 5. G28
 6. Replace nozzle if needed
 8. Heat hot end (make sure nozzle face is clean prior)
